@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "both-trees.js",
+  "sourceRoot": "../..",
+  "sources": [
+    "src/coffee/both-trees.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;EAAA,MAAM,CAAC,OAAP,GACI;IAAA,OAAA,EAAS,OAAA,CAAQ,YAAR,CAAT;IACA,OAAA,EAAS,OAAA,CAAQ,YAAR,CADT;;AADJ"
+}

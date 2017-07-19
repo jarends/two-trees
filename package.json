@@ -1,0 +1,50 @@
+{
+    "name": "two-trees",
+    "version": "0.0.1",
+    "description": "a somehow virtual dom and a 'virtual data object model' ;-) with redo/undo",
+    "main": "src/js/both-trees.js",
+    "scripts": {
+        "start": "npm run watch",
+        "once": "npm run src-once && npm run test-once && npm run example-once",
+        "watch": "concurrently -k -r 'salter' 'npm run src-watch' 'npm run example-watch' 'npm run test-watch'",
+        "src-once": "coffee -c -m -o ./src/js ./src/coffee",
+        "src-watch": "coffee -w -m -o ./src/js ./src/coffee",
+        "example-once": "coffee -c -m -o ./example/js ./example/coffee && node-sass --source-map true -o ./example/css ./example/scss && wzp -em -im -bp ./example -cp ./js/chunk_ -p ./js/context.js",
+        "example-watch": "concurrently -k -r 'coffee -w -m -o ./example/js ./example/coffee' 'node-sass --source-map true -w -o ./example/css ./example/scss' 'wzp -w -em -im -bp ./example -cp ./js/chunk_ -p ./js/context.js'",
+        "test-once": "coffee -c -m -o ./test/js ./test/coffee && wzp -em -im -bp ./test -p ./js/index.js && karma start --single-run || true",
+        "test-watch": "concurrently -k -r 'coffee -w -m -o ./test/js ./test/coffee' 'wzp -w -em -im -bp ./test -p ./js/index.js' 'karma start || true'"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jarends/two-trees.git"
+    },
+    "keywords": [
+        "virtual dom",
+        "virtual data model",
+        "components",
+        "model",
+        "undo",
+        "redo"
+    ],
+    "author": "jarends",
+    "license": "Unlicense",
+    "bugs": {
+        "url": "https://github.com/jarends/two-trees/issues"
+    },
+    "homepage": "https://github.com/jarends/two-trees#readme",
+    "dependencies": {},
+    "devDependencies": {
+        "chai": "^4.0.2",
+        "coffee-script": "^1.12.6",
+        "concurrently": "^3.4.0",
+        "karma": "^1.7.0",
+        "karma-chai": "^0.1.0",
+        "karma-chrome-launcher": "^2.2.0",
+        "karma-mocha": "^1.3.0",
+        "karma-mocha-clean-reporter": "0.0.1",
+        "mocha": "^3.4.2",
+        "node-sass": "^4.5.3",
+        "salter": "^1.1.4",
+        "werkzeug-packer": "0.0.1"
+    }
+}
