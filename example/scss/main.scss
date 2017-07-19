@@ -10,7 +10,9 @@ html, body {
     -webkit-text-size-adjust: 100%;
 }
 
-h1, span {
+h1 {
+    cursor: pointer;
+
     -webkit-user-select: none;
        -moz-user-select: none;
         -ms-user-select: none;
