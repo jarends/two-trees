@@ -1,6 +1,6 @@
 {
     "name": "two-trees",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "a somehow virtual dom and a 'virtual data object model' ;-) with redo/undo",
     "main": "src/js/both-trees.js",
     "scripts": {

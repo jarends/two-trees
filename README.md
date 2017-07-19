@@ -20,7 +20,8 @@ This project is under development. Play with it but use it on your owen risk.
   
 <br/>  
   
-Until now you have to look into the little [example](https://github.com/jarends/two-trees/tree/master/example/) to get a feeling, how it works.
+Until now you have to look into the little [example](https://github.com/jarends/two-trees/tree/master/example/) to get a feeling, how it works.  
+And the working example can be found here: https://jarends.github.io/two-trees/
 
 <br/>     
 Enjoy!
