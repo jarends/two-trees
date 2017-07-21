@@ -1,6 +1,6 @@
-TreeOne = require '../../src/js/tree-one'
-TreeTwo = require '../../src/js/tree-two'
-AppView = require './app-view'
+ViewTree = require '../../src/js/view-tree'
+DataTree = require '../../src/js/data-tree'
+AppView  = require './app-view'
 
 
 class Context
@@ -9,12 +9,12 @@ class Context
     constructor: () ->
         console.log(';-)');
 
-        model = new TreeTwo
+        model = new DataTree
             title:   'Hello two-trees'
             bgGreen: 255
 
         app = new AppView model: model
-        TreeOne.render app, document.querySelector '.app'
+        ViewTree.render app, document.querySelector '.app'
 
         ###
         Treedom.map 'app', AppView

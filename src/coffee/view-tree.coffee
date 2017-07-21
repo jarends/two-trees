@@ -30,7 +30,7 @@ normalizeEvent = (type) ->
 
 
 throwCfgError = (cfg) ->
-    throw new Error 'TreeOne ERROR: cfg must be either a string or an object containing a tag property as string. cfg = ' + getCfgJson cfg
+    throw new Error 'Cfg must either be a string or an object containing a tag property as not empty string or node class. cfg = ' + getCfgJson cfg
 
 
 
@@ -45,6 +45,15 @@ getCfgJson = (cfg) ->
 
 
 ###
+    if cfg is string || boolean || number
+        node is a text node
+
+    if cfg is object
+        tag can be
+            string
+                which is mapped to an component class
+                the node name
+
     cfg =
         tag:
         style:
@@ -66,21 +75,14 @@ class Node
 
 
     dispose: () ->
-        if @children and @children.length
-            child.dipose() for child in @children
-        delete nodeMap[@id]
         null
 
 
     onMount:   () ->
-        if @children and @children.length
-            child.onMount() for child in @children
         null
 
 
     onUnmount: () ->
-        if @children and @children.length
-            child.onUnmount() for child in @children
         null
 
 
@@ -91,13 +93,9 @@ class Node
 
 
     onAdded:   () ->
-        if @children and @children.length
-            child.onAdded() for child in @children
 
 
     onRemoved: () ->
-        if @children and @children.length
-            child.onRemoved() for child in @children
 
 
     add:       (child) ->
@@ -108,7 +106,11 @@ class Node
 
 
 
-
+#    00000000   00000000    0000000   00000000    0000000
+#    000   000  000   000  000   000  000   000  000     
+#    00000000   0000000    000   000  00000000   0000000 
+#    000        000   000  000   000  000             000
+#    000        000   000   0000000   000        0000000 
 
 tagMap     = {}
 rootMap    = {}
@@ -119,6 +121,13 @@ rafTimeout = null
 
 
 
+
+#    00     00   0000000   00000000 
+#    000   000  000   000  000   000
+#    000000000  000000000  00000000 
+#    000 0 000  000   000  000      
+#    000   000  000   000  000      
+
 map = (tag, clazz, overwrite = false) ->
     if isNot(tagMap[tag]) or overwrite
         tagMap[tag] = clazz
@@ -127,6 +136,13 @@ map = (tag, clazz, overwrite = false) ->
 
 
 
+
+#    000   000  000   000  00     00   0000000   00000000 
+#    000   000  0000  000  000   000  000   000  000   000
+#    000   000  000 0 000  000000000  000000000  00000000 
+#    000   000  000  0000  000 0 000  000   000  000      
+#     0000000   000   000  000   000  000   000  000      
+
 unmap = (tag) ->
     delete tagMap[tag]
     null
@@ -134,28 +150,43 @@ unmap = (tag) ->
 
 
 
+#     0000000  00000000   00000000   0000000   000000000  00000000
+#    000       000   000  000       000   000     000     000     
+#    000       0000000    0000000   000000000     000     0000000 
+#    000       000   000  000       000   000     000     000     
+#     0000000  000   000  00000000  000   000     000     00000000
+
 create = (cfg, root = null) ->
-    #console.log 'TreeOne.create: ', cfg, root
-    throwCfgError(cfg) if isNot cfg
+    #console.log 'ViewTree.create: ', cfg, root
+    throwCfgError cfg if isNot cfg
     if isSimple cfg
         clazz = Node
     else
-        throwCfgError(cfg) if not isString cfg.tag
-        clazz = tagMap[cfg.tag] or Node
+        if isFunc(tag = cfg.tag) and tag.prototype instanceof Node
+            clazz = cfg.tag
+        else
+            throwCfgError cfg if not isString(tag) or tag == ''
+            clazz = tagMap[tag] or Node
 
     node      = new clazz cfg
-    node.view = createView node.render(), node
+    node.view = createView node, node.render()
     render(node, root) if root != null
     node
 
 
 
 
+#    00000000   00000000  000   000  0000000    00000000  00000000 
+#    000   000  000       0000  000  000   000  000       000   000
+#    0000000    0000000   000 0 000  000   000  0000000   0000000  
+#    000   000  000       000  0000  000   000  000       000   000
+#    000   000  00000000  000   000  0000000    00000000  000   000
+
 render = (node, root) ->
-    #console.log 'TreeOne.render: ', node, root
+    #console.log 'ViewTree.render: ', node, root
     cfg = node.render()
     if not node.view
-        node.view = createView cfg, node
+        node.view = createView node, cfg
 
     root.appendChild(node.view)
 
@@ -163,21 +194,34 @@ render = (node, root) ->
         updateText node, cfg
     else
         updateProperties node, cfg
+
+    node.onMount()
     null
 
 
 
+
+#    00000000   00000000  00     00   0000000   000   000  00000000
+#    000   000  000       000   000  000   000  000   000  000     
+#    0000000    0000000   000000000  000   000   000 000   0000000 
+#    000   000  000       000 0 000  000   000     000     000     
+#    000   000  00000000  000   000   0000000       0      00000000
 
 remove = (nodeOrRoot) ->
 
 
 
 
+#    000   000  00000000   0000000     0000000   000000000  00000000
+#    000   000  000   000  000   000  000   000     000     000     
+#    000   000  00000000   000   000  000000000     000     0000000 
+#    000   000  000        000   000  000   000     000     000     
+#     0000000   000        0000000    000   000     000     00000000
+
 update = (node) ->
     id = node?.id
     if not id
         throw new Error "DOM ERROR: can't update node. Node doesn't exist. cfg = " + getCfgJson(node?.cfg or null)
-        return
 
     if not dirty
         window.cancelAnimationFrame rafTimeout
@@ -190,20 +234,22 @@ update = (node) ->
 
 
 
+#    000   000  00000000   0000000     0000000   000000000  00000000        000   000   0000000   000   000
+#    000   000  000   000  000   000  000   000     000     000             0000  000  000   000  000 0 000
+#    000   000  00000000   000   000  000000000     000     0000000         000 0 000  000   000  000000000
+#    000   000  000        000   000  000   000     000     000             000  0000  000   000  000   000
+#     0000000   000        0000000    000   000     000     00000000        000   000   0000000   00     00
+
 updateNow = () ->
     window.cancelAnimationFrame rafTimeout
     dirty = false
     #TODO: sort by depth to update top down
     nodes = []
-    nodes.push(nodeMap[id]) for id of dirtyMap
+    (nodes.push(n) if n = nodeMap[id]) for id of dirtyMap
     nodes.sort (a, b) -> a.depth - b.depth
     for node in nodes
         continue if not node
-        delete dirtyMap[node.id]
         cfg = node.render()
-        #TODO: This removes a component if the kind swaps between text and tag or between different tags. Maybe we can keep the component somehow!!!
-        #TODO: Maybe ask the component, if it wants to be updated or replaced (like change method does)
-        #TODO: We definitly want to keep the component!!!
         if node.tag != cfg.tag
             replaceChild node, cfg
         else
@@ -213,8 +259,13 @@ updateNow = () ->
 
 
 
+#     0000000  00000000   00000000   0000000   000000000  00000000        000   000  000  00000000  000   000
+#    000       000   000  000       000   000     000     000             000   000  000  000       000 0 000
+#    000       0000000    0000000   000000000     000     0000000          000 000   000  0000000   000000000
+#    000       000   000  000       000   000     000     000                000     000  000       000   000
+#     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
 
-createView = (cfg, node) ->
+createView = (node, cfg) ->
     throwCfgError(cfg) if isNot cfg
     if isSimple cfg
         node.tag = undefined
@@ -226,6 +277,12 @@ createView = (cfg, node) ->
 
 
 
+#    000   000  00000000   0000000     0000000   000000000  00000000        000000000  00000000  000   000  000000000
+#    000   000  000   000  000   000  000   000     000     000                000     000        000 000      000   
+#    000   000  00000000   000   000  000000000     000     0000000            000     0000000     00000       000   
+#    000   000  000        000   000  000   000     000     000                000     000        000 000      000   
+#     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
+
 updateText = (node, cfg) ->
     if node.cfg != cfg
         node.cfg            = cfg
@@ -235,7 +292,14 @@ updateText = (node, cfg) ->
 
 
 
+#    000   000  00000000   0000000     0000000   000000000  00000000        00000000   00000000    0000000   00000000    0000000
+#    000   000  000   000  000   000  000   000     000     000             000   000  000   000  000   000  000   000  000     
+#    000   000  00000000   000   000  000000000     000     0000000         00000000   0000000    000   000  00000000   0000000 
+#    000   000  000        000   000  000   000     000     000             000        000   000  000   000  000             000
+#     0000000   000        0000000    000   000     000     00000000        000        000   000   0000000   000        0000000 
+
 updateProperties = (node, cfg) ->
+    cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, node.attrs, node.events, cfg
     delete propMap.tag
@@ -264,6 +328,7 @@ updateProperties = (node, cfg) ->
         updateChildren node, cfg.children
 
     null
+
 
 
 
@@ -458,11 +523,13 @@ updateChildren = (node, cfgs) ->
 #     0000000  000   000  000   000  000   000   0000000   00000000
 
 change = (node, cfg) ->
-    if node == cfg
-        if node.canUpdate() and node.needsUpdate()
-            updateProperties node, cfg
+    canUpdate   = node.canUpdate()
+    needsUpdate = node.needsUpdate()
+    if node == cfg and needsUpdate
+        if canUpdate
+            updateProperties node, node.render()
         else
-            replaceChild node, cfg
+            replaceChild node, node.render()
 
     else if node.tag != cfg.tag
         replaceChild node, cfg
@@ -470,8 +537,8 @@ change = (node, cfg) ->
     else if node.tag == undefined # text node
         updateText node, cfg
 
-    else if node.canUpdate() and node.needsUpdate()
-        updateProperties node, cfg
+    else if canUpdate and needsUpdate # tag node
+        updateProperties node, cfg #TODO: cfg can be a node
 
     false
 
@@ -491,7 +558,7 @@ addChild = (node, cfg) ->
         child = create cfg
 
     if not child.view
-        child.view = createView cfg, child
+        child.view = createView child, cfg
 
     node.children.push child
     node.view.appendChild child.view
@@ -529,7 +596,7 @@ removeChild = (child) ->
 #    000   000  00000000  000        0000000  000   000   0000000  00000000
 
 replaceChild = (child, cfg) ->
-    consol.log 'TreeOne.replaceChild: ', child, cfg
+    consol.log 'ViewTree.replaceChild: ', child, cfg
     node     = child.parent
     children = node.children
     i        = children.indexOf child
@@ -543,7 +610,7 @@ replaceChild = (child, cfg) ->
         child = create cfg
 
     if not child.view
-        child.view = createView cfg, child
+        child.view = createView child, cfg
 
     children[i]  = child
     child.parent = node
@@ -568,13 +635,15 @@ replaceChild = (child, cfg) ->
 #    0000000    000  0000000   000         0000000   0000000   00000000
 
 disposeNode = (node) ->
+    console.log 'disposeNode: ', node
     delete nodeMap[node.id]
 
     removeEvents node
 
     if node.children and node.children.length
-        disposeNode(child) for child in node.children
+        disposeNode child for child in node.children
 
+    child.parent = null
     null
 
 
@@ -637,7 +706,7 @@ if typeof Object.assign == 'undefined'
 
 
 
-TreeOne =
+ViewTree =
     Node:      Node
     map:       map
     unmap:     unmap
@@ -649,9 +718,10 @@ TreeOne =
 
 
 
+
 if typeof module != 'undefined'
-    module.exports = TreeOne
+    module.exports = ViewTree
 if typeof window != 'undefined'
-    window.TreeOne = TreeOne
+    window.ViewTree = ViewTree
 else
-    this.TreeOne = TreeOne
+    this.ViewTree = ViewTree

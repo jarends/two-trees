@@ -1,3 +1,3 @@
 module.exports =
-    TreeOne: require './tree-one'
-    TreeTwo: require './tree-two'
+    ViewTree: require './view-tree'
+    DataTree: require './data-tree'

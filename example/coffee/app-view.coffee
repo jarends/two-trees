@@ -1,7 +1,7 @@
-TreeOne = require '../../src/js/tree-one'
+ViewTree = require '../../src/js/view-tree'
 
 
-class AppView extends TreeOne.Node
+class AppView extends ViewTree.Node
 
 
     constructor: (cfg) ->
