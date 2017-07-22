@@ -10,12 +10,12 @@ class AppView extends ViewTree.Node
         @data  = cfg.model.root
         @title = @data.title
 
-        @model.bind @data.test, 'bla',      () -> console.log 'test.bla changed: '
-        @model.bind @data,      'bgGreen',  () -> console.log 'bgGreen changed: '
-        @model.bind @data.a[0], null,       () -> console.log 'a[0] changed: '
-        @model.bind @data.a,    '0',        () -> console.log 'a.0 changed: '
-        @model.bind @data.a[0], 'hello',    () -> console.log 'a.0.hello changed: '
-        @model.bind @data.a[0], 'helloNew', () -> console.log 'a.0.helloNew changed: '
+        @model.bind @data.test, 'bla',      (value, obj, name, path) -> console.log 'test.bla changed: ',     value
+        @model.bind @data,      'bgGreen',  (value, obj, name, path) -> console.log 'bgGreen changed: ',      value
+        @model.bind @data.a[0], null,       (value, obj, name, path) -> console.log 'a[0] changed: ',         value
+        @model.bind @data.a,    '0',        (value, obj, name, path) -> console.log 'a.0 changed: ',          value
+        @model.bind @data.a[0], 'hello',    (value, obj, name, path) -> console.log 'a.0.hello changed: ',    value
+        @model.bind @data.a[0], 'helloNew', (value, obj, name, path) -> console.log 'a.0.helloNew changed: ', value
 
 
     onClick: () =>

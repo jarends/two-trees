@@ -18,23 +18,23 @@
       this.model = cfg.model;
       this.data = cfg.model.root;
       this.title = this.data.title;
-      this.model.bind(this.data.test, 'bla', function() {
-        return console.log('test.bla changed: ');
+      this.model.bind(this.data.test, 'bla', function(value, obj, name, path) {
+        return console.log('test.bla changed: ', value);
       });
-      this.model.bind(this.data, 'bgGreen', function() {
-        return console.log('bgGreen changed: ');
+      this.model.bind(this.data, 'bgGreen', function(value, obj, name, path) {
+        return console.log('bgGreen changed: ', value);
       });
-      this.model.bind(this.data.a[0], null, function() {
-        return console.log('a[0] changed: ');
+      this.model.bind(this.data.a[0], null, function(value, obj, name, path) {
+        return console.log('a[0] changed: ', value);
       });
-      this.model.bind(this.data.a, '0', function() {
-        return console.log('a.0 changed: ');
+      this.model.bind(this.data.a, '0', function(value, obj, name, path) {
+        return console.log('a.0 changed: ', value);
       });
-      this.model.bind(this.data.a[0], 'hello', function() {
-        return console.log('a.0.hello changed: ');
+      this.model.bind(this.data.a[0], 'hello', function(value, obj, name, path) {
+        return console.log('a.0.hello changed: ', value);
       });
-      this.model.bind(this.data.a[0], 'helloNew', function() {
-        return console.log('a.0.helloNew changed: ');
+      this.model.bind(this.data.a[0], 'helloNew', function(value, obj, name, path) {
+        return console.log('a.0.helloNew changed: ', value);
       });
     }
 

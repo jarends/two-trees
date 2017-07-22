@@ -82,7 +82,6 @@
           }
           this.history.push(this.currentActions);
           ++this.historyIndex;
-          console.log('changed paths: ', this.currentPaths);
           this.currentActions.paths = this.currentPaths;
           this.dispatchBindings(this.currentPaths);
         }
@@ -124,16 +123,19 @@
     };
 
     TreeTwo.prototype.dispatchBindings = function(paths) {
-      var callback, callbacks, called, dispatched, j, len, path;
+      var callback, callbacks, called, dispatched, j, len, name, node, path, value;
       called = [];
       dispatched = false;
       for (path in paths) {
+        node = paths[path];
         callbacks = this.bindings[path];
+        name = path.split('/').pop() || '';
+        value = node.value;
         if (callbacks) {
           for (j = 0, len = callbacks.length; j < len; j++) {
             callback = callbacks[j];
             if (called.indexOf(callback) === -1) {
-              callback();
+              callback(value[name], value, name, path);
               dispatched = true;
               called.push(callback);
             }
@@ -342,15 +344,16 @@
       return null;
     };
 
-    TreeTwo.prototype.addPaths = function(node, path, paths, callback) {
+    TreeTwo.prototype.addPaths = function(node, path, paths, callback, root) {
       var id, n, names, owner, ref;
       path = path === null || path === void 0 ? '' : path + '';
       if (path) {
         path = '/' + path;
       }
       paths = paths || {};
+      root = root || node;
       if (node === this.rootNode) {
-        paths[path] = true;
+        paths[path] = root || node;
         if (callback) {
           callback(path);
         }
@@ -360,7 +363,7 @@
           names = ref[id];
           owner = this.nodeMap[id];
           for (n in names) {
-            this.addPaths(owner, n + path, paths, callback);
+            this.addPaths(owner, n + path, paths, callback, root);
           }
         }
       }

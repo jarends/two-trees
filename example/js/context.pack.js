@@ -985,7 +985,6 @@ module.id = '../src/js/data-tree.js';
           }
           this.history.push(this.currentActions);
           ++this.historyIndex;
-          console.log('changed paths: ', this.currentPaths);
           this.currentActions.paths = this.currentPaths;
           this.dispatchBindings(this.currentPaths);
         }
@@ -1027,16 +1026,19 @@ module.id = '../src/js/data-tree.js';
     };
 
     TreeTwo.prototype.dispatchBindings = function(paths) {
-      var callback, callbacks, called, dispatched, j, len, path;
+      var callback, callbacks, called, dispatched, j, len, name, node, path, value;
       called = [];
       dispatched = false;
       for (path in paths) {
+        node = paths[path];
         callbacks = this.bindings[path];
+        name = path.split('/').pop() || '';
+        value = node.value;
         if (callbacks) {
           for (j = 0, len = callbacks.length; j < len; j++) {
             callback = callbacks[j];
             if (called.indexOf(callback) === -1) {
-              callback();
+              callback(value[name], value, name, path);
               dispatched = true;
               called.push(callback);
             }
@@ -1245,15 +1247,16 @@ module.id = '../src/js/data-tree.js';
       return null;
     };
 
-    TreeTwo.prototype.addPaths = function(node, path, paths, callback) {
+    TreeTwo.prototype.addPaths = function(node, path, paths, callback, root) {
       var id, n, names, owner, ref;
       path = path === null || path === void 0 ? '' : path + '';
       if (path) {
         path = '/' + path;
       }
       paths = paths || {};
+      root = root || node;
       if (node === this.rootNode) {
-        paths[path] = true;
+        paths[path] = root || node;
         if (callback) {
           callback(path);
         }
@@ -1263,7 +1266,7 @@ module.id = '../src/js/data-tree.js';
           names = ref[id];
           owner = this.nodeMap[id];
           for (n in names) {
-            this.addPaths(owner, n + path, paths, callback);
+            this.addPaths(owner, n + path, paths, callback, root);
           }
         }
       }
@@ -1343,23 +1346,23 @@ module.id = 'js/app-view.js';
       this.model = cfg.model;
       this.data = cfg.model.root;
       this.title = this.data.title;
-      this.model.bind(this.data.test, 'bla', function() {
-        return console.log('test.bla changed: ');
+      this.model.bind(this.data.test, 'bla', function(value, obj, name, path) {
+        return console.log('test.bla changed: ', value);
       });
-      this.model.bind(this.data, 'bgGreen', function() {
-        return console.log('bgGreen changed: ');
+      this.model.bind(this.data, 'bgGreen', function(value, obj, name, path) {
+        return console.log('bgGreen changed: ', value);
       });
-      this.model.bind(this.data.a[0], null, function() {
-        return console.log('a[0] changed: ');
+      this.model.bind(this.data.a[0], null, function(value, obj, name, path) {
+        return console.log('a[0] changed: ', value);
       });
-      this.model.bind(this.data.a, '0', function() {
-        return console.log('a.0 changed: ');
+      this.model.bind(this.data.a, '0', function(value, obj, name, path) {
+        return console.log('a.0 changed: ', value);
       });
-      this.model.bind(this.data.a[0], 'hello', function() {
-        return console.log('a.0.hello changed: ');
+      this.model.bind(this.data.a[0], 'hello', function(value, obj, name, path) {
+        return console.log('a.0.hello changed: ', value);
       });
-      this.model.bind(this.data.a[0], 'helloNew', function() {
-        return console.log('a.0.helloNew changed: ');
+      this.model.bind(this.data.a[0], 'helloNew', function(value, obj, name, path) {
+        return console.log('a.0.helloNew changed: ', value);
       });
     }
 

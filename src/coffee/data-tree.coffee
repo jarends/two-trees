@@ -73,7 +73,7 @@ class TreeTwo
                     @history.length = @historyIndex
                 @history.push @currentActions
                 ++@historyIndex
-                console.log 'changed paths: ', @currentPaths
+                #console.log 'changed paths: ', @currentPaths
                 @currentActions.paths = @currentPaths
                 @dispatchBindings @currentPaths
         else
@@ -113,13 +113,15 @@ class TreeTwo
     dispatchBindings: (paths) ->
         called     = []
         dispatched = false
-        for path of paths
+        for path, node of paths
             callbacks = @bindings[path]
-            #console.log 'dispatch path: ', path
+            name      = path.split('/').pop() or ''
+            value     = node.value
+            #console.log 'dispatch path: ', path, node.value[name]
             if callbacks
                 for callback in callbacks
                     if called.indexOf(callback) == -1
-                        callback()
+                        callback value[name], value, name, path
                         dispatched = true
                         called.push callback
         dispatched
@@ -304,20 +306,21 @@ class TreeTwo
 
 
 
-    addPaths: (node, path, paths, callback) ->
+    addPaths: (node, path, paths, callback, root) ->
         path  = if path == null or path == undefined then '' else path + ''
         path  = '/' + path if path
         paths = paths or {}
+        root  = root or node
         #console.log 'addPaths: ', path
         if node == @rootNode
             #console.log 'add path: ', path
-            paths[path] = true
+            paths[path] = root or node
             callback path if callback
         else
             for id, names of node.owners
                 owner = @nodeMap[id]
                 for n of names
-                    @addPaths owner, n + path, paths, callback
+                    @addPaths owner, n + path, paths, callback, root
         paths
 
 
