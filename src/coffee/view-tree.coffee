@@ -1,6 +1,10 @@
 __id__ = 0
 
 
+COMP_CFG_ERROR = 'Cfg for creating a node must either be a string or an object containing a tag property as not empty string or a node class.'
+VIEW_CFG_ERROR = 'Cfg for creating a view must either be a string or an object containing a tag property as not empty string'
+
+
 isBool   = (value) -> typeof value == 'boolean'
 isNumber = (value) -> typeof value == 'number'
 isString = (value) -> typeof value == 'string' or value == value + ''
@@ -29,8 +33,12 @@ normalizeEvent = (type) ->
 
 
 
-throwCfgError = (cfg) ->
-    throw new Error 'Cfg must either be a string or an object containing a tag property as not empty string or node class. cfg = ' + getCfgJson cfg
+throwNodeCfgError = (cfg) ->
+    throw new Error COMP_CFG_ERROR + ' cfg = ' + getCfgJson cfg
+
+
+throwViewCfgError = (cfg) ->
+    throw new Error VIEW_CFG_ERROR + ' cfg = ' + getCfgJson cfg
 
 
 
@@ -158,14 +166,14 @@ unmap = (tag) ->
 
 create = (cfg, root = null) ->
     #console.log 'ViewTree.create: ', cfg, root
-    throwCfgError cfg if isNot cfg
+    throwNodeCfgError cfg if isNot cfg
     if isSimple cfg
         clazz = Node
     else
         if isFunc(tag = cfg.tag) and tag.prototype instanceof Node
             clazz = cfg.tag
         else
-            throwCfgError cfg if not isString(tag) or tag == ''
+            throwNodeCfgError cfg if not isString(tag) or tag == ''
             clazz = tagMap[tag] or Node
 
     node      = new clazz cfg
@@ -266,11 +274,11 @@ updateNow = () ->
 #     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
 
 createView = (node, cfg) ->
-    throwCfgError(cfg) if isNot cfg
+    throwViewCfgError(cfg) if isNot cfg
     if isSimple cfg
         node.tag = undefined
         return document.createTextNode(cfg + '')
-    throwCfgError(cfg) if not isString tag = cfg.tag
+    throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
     node.tag = tag
     document.createElement tag
 
@@ -707,14 +715,16 @@ if typeof Object.assign == 'undefined'
 
 
 ViewTree =
-    Node:      Node
-    map:       map
-    unmap:     unmap
-    create:    create
-    render:    render
-    remove:    remove
-    update:    update
-    updateNow: updateNow
+    Node:           Node
+    COMP_CFG_ERROR: COMP_CFG_ERROR
+    VIEW_CFG_ERROR: VIEW_CFG_ERROR
+    map:            map
+    unmap:          unmap
+    create:         create
+    render:         render
+    remove:         remove
+    update:         update
+    updateNow:      updateNow
 
 
 

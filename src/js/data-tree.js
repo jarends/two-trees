@@ -7,7 +7,7 @@
   TreeTwo = (function() {
     function TreeTwo(root) {
       this.nodeMap = {};
-      this.bindingMap = {};
+      this.bindings = {};
       this.history = [];
       this.historyIndex = 0;
       if (root) {
@@ -16,9 +16,8 @@
     }
 
     TreeTwo.prototype.setRoot = function(obj) {
-      this.rootNode = this.createNode(null, 'root', obj);
-      this.root = obj;
-      return null;
+      this.rootNode = this.createNode(null, '/', obj);
+      return this.root = obj;
     };
 
     TreeTwo.prototype.getRoot = function() {
@@ -32,11 +31,45 @@
       return typeof obj === 'object' && this.nodeMap[obj.__node_id__] !== void 0;
     };
 
+    TreeTwo.prototype.bind = function(obj, name, callback) {
+      var node, paths;
+      node = typeof obj === 'object' ? this.nodeMap[obj.__node_id__] : null;
+      paths = this.addPaths(node, name, null, (function(_this) {
+        return function(path) {
+          var callbacks;
+          callbacks = _this.bindings[path] || (_this.bindings[path] = []);
+          if (callbacks.indexOf(callback) === -1) {
+            console.log('add binding: ', path);
+            return callbacks.push(callback);
+          }
+        };
+      })(this));
+      return paths;
+    };
+
+    TreeTwo.prototype.unbind = function(obj, name, callback) {
+      var node;
+      node = typeof obj === 'object' ? this.nodeMap[obj.__node_id__] : null;
+      return this.addPaths(node, name, null, (function(_this) {
+        return function(path) {
+          var callbacks, index;
+          callbacks = _this.bindings[path];
+          if (callbacks) {
+            index = callbacks.indexOf(callback);
+            if (index > -1) {
+              return callbacks.splice(index, 1);
+            }
+          }
+        };
+      })(this));
+    };
+
     TreeTwo.prototype.update = function(obj, name) {
       var error, node;
-      node = obj ? this.nodeMap[obj.__node_id__] : this.rootNode;
+      node = typeof obj === 'object' ? this.nodeMap[obj.__node_id__] : this.rootNode;
       if (node) {
         this.currentActions = [];
+        this.currentPaths = {};
         this.updatedMap = {};
         if (name !== void 0) {
           this.updateProp(node, name);
@@ -49,6 +82,9 @@
           }
           this.history.push(this.currentActions);
           ++this.historyIndex;
+          console.log('changed paths: ', this.currentPaths);
+          this.currentActions.paths = this.currentPaths;
+          this.dispatchBindings(this.currentPaths);
         }
       } else {
         console.error(error = 'Error: object not part of this tree: ', obj);
@@ -65,6 +101,7 @@
           action = actions[j];
           action.undo();
         }
+        this.dispatchBindings(actions.paths);
       } else {
         console.log('undo not possible!!! ', this.historyIndex);
       }
@@ -79,10 +116,31 @@
           action = actions[j];
           action.redo();
         }
+        this.dispatchBindings(actions.paths);
       } else {
         console.log('redo not possible!!! ', this.historyIndex);
       }
       return null;
+    };
+
+    TreeTwo.prototype.dispatchBindings = function(paths) {
+      var callback, callbacks, called, dispatched, j, len, path;
+      called = [];
+      dispatched = false;
+      for (path in paths) {
+        callbacks = this.bindings[path];
+        if (callbacks) {
+          for (j = 0, len = callbacks.length; j < len; j++) {
+            callback = callbacks[j];
+            if (called.indexOf(callback) === -1) {
+              callback();
+              dispatched = true;
+              called.push(callback);
+            }
+          }
+        }
+      }
+      return dispatched;
     };
 
     TreeTwo.prototype.createNode = function(owner, name, value) {
@@ -99,6 +157,10 @@
           owners: {}
         };
         this.nodeMap[node.id] = node;
+        if (owner) {
+          this.addPaths(owner, name, this.currentPaths);
+          addOwner(node, owner, name);
+        }
         if (value) {
           if (value.constructor.name === 'Array') {
             Object.defineProperty(value, '__node_id__', {
@@ -123,9 +185,6 @@
             }
           }
         }
-      }
-      if (owner) {
-        addOwner(node, owner, name);
       }
       return node;
     };
@@ -170,6 +229,9 @@
         child = this.createNode(node, name, value);
         this.addCreateAction(child, node, name);
       } else if (value === void 0) {
+        if (child.type !== 'value') {
+          this.updateNode(child);
+        }
         removeOwner(child, node, name);
         this.addRemoveAction(child, node, name);
       } else {
@@ -191,6 +253,9 @@
             }
           }
           if (type !== 'value' || type !== child.type) {
+            if (child.type !== 'value') {
+              this.updateNode(child);
+            }
             removeOwner(child, node, name);
             next = this.createNode(node, name, value);
             this.addSwapAction(child, node, name, next);
@@ -204,6 +269,7 @@
     };
 
     TreeTwo.prototype.addCreateAction = function(node, owner, name) {
+      this.addPaths(owner, name, this.currentPaths);
       this.currentActions.push({
         type: 'create',
         undo: function() {
@@ -217,6 +283,7 @@
     };
 
     TreeTwo.prototype.addRemoveAction = function(node, owner, name) {
+      this.addPaths(owner, name, this.currentPaths);
       this.currentActions.push({
         type: 'remove',
         undo: function() {
@@ -230,6 +297,7 @@
     };
 
     TreeTwo.prototype.addSwapAction = function(node, owner, name, next) {
+      this.addPaths(owner, name, this.currentPaths);
       this.currentActions.push({
         type: 'swap',
         undo: function() {
@@ -245,6 +313,7 @@
     };
 
     TreeTwo.prototype.addChangeValueAction = function(node, owner, name, newValue) {
+      this.addPaths(owner, name, this.currentPaths);
       this.currentActions.push({
         type: 'changeValue',
         oldValue: node.value,
@@ -271,6 +340,31 @@
         }
       });
       return null;
+    };
+
+    TreeTwo.prototype.addPaths = function(node, path, paths, callback) {
+      var id, n, names, owner, ref;
+      path = path === null || path === void 0 ? '' : path + '';
+      if (path) {
+        path = '/' + path;
+      }
+      paths = paths || {};
+      if (node === this.rootNode) {
+        paths[path] = true;
+        if (callback) {
+          callback(path);
+        }
+      } else {
+        ref = node.owners;
+        for (id in ref) {
+          names = ref[id];
+          owner = this.nodeMap[id];
+          for (n in names) {
+            this.addPaths(owner, n + path, paths, callback);
+          }
+        }
+      }
+      return paths;
     };
 
     return TreeTwo;

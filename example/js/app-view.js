@@ -18,11 +18,34 @@
       this.model = cfg.model;
       this.data = cfg.model.root;
       this.title = this.data.title;
+      this.model.bind(this.data.test, 'bla', function() {
+        return console.log('test.bla changed: ');
+      });
+      this.model.bind(this.data, 'bgGreen', function() {
+        return console.log('bgGreen changed: ');
+      });
+      this.model.bind(this.data.a[0], null, function() {
+        return console.log('a[0] changed: ');
+      });
+      this.model.bind(this.data.a, '0', function() {
+        return console.log('a.0 changed: ');
+      });
+      this.model.bind(this.data.a[0], 'hello', function() {
+        return console.log('a.0.hello changed: ');
+      });
+      this.model.bind(this.data.a[0], 'helloNew', function() {
+        return console.log('a.0.helloNew changed: ');
+      });
     }
 
     AppView.prototype.onClick = function() {
       this.data.bgGreen = (Math.random() * 200 + 55) >> 0;
       this.data.title = this.title + '!!!!!'.slice((Math.random() * 5) >> 0);
+      this.data.a[0].hello = 'world!';
+      this.data.a[0] = this.newA = this.newA || {
+        helloNew: 'worldNew'
+      };
+      this.data.test.bla = 'blup';
       this.model.update();
       this.update();
       return null;

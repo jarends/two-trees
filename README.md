@@ -4,7 +4,7 @@ are a [react](https://facebook.github.io/react/) inspired virtual dom and a 'vir
 Both trees encapsulate either your view or your data with a node structure.  
 You can create components to use with the view-tree and the data-tree has build in undo/redo functionality.  
   
-This project is under development. Play with it but use it on your owen risk.  
+This project is under development. Play with it but use it on your own risk.  
 <br/>
 
 **usage**

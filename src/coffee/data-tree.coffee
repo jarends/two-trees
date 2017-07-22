@@ -6,7 +6,7 @@ class TreeTwo
 
     constructor: (root) ->
         @nodeMap      = {}
-        @bindingMap   = {}
+        @bindings     = {}
         @history      = []
         @historyIndex = 0
         @setRoot(root) if root
@@ -15,9 +15,9 @@ class TreeTwo
 
 
     setRoot: (obj) ->
-        @rootNode = @createNode null, 'root', obj
+        #TODO: add disposement for existing root
+        @rootNode = @createNode null, '/', obj
         @root     = obj
-        null
 
 
     getRoot: () ->
@@ -31,10 +31,36 @@ class TreeTwo
 
 
 
+    bind: (obj, name, callback) ->
+        node  = if typeof obj == 'object' then @nodeMap[obj.__node_id__] else null
+        paths = @addPaths node, name, null, (path) =>
+            callbacks = @bindings[path] or @bindings[path] = []
+            if callbacks.indexOf(callback) == -1
+                console.log 'add binding: ', path
+                callbacks.push callback
+        #console.log 'bind to: ', paths
+        paths
+
+
+
+
+    unbind: (obj, name, callback) ->
+        node = if typeof obj == 'object' then @nodeMap[obj.__node_id__] else null
+        @addPaths node, name, null, (path) =>
+            callbacks = @bindings[path]
+            if callbacks
+                index = callbacks.indexOf callback
+                if index > -1
+                    callbacks.splice index, 1
+
+
+
+
     update: (obj, name) ->
-        node = if obj then @nodeMap[obj.__node_id__] else @rootNode
+        node = if typeof obj == 'object' then @nodeMap[obj.__node_id__] else @rootNode
         if node
             @currentActions = []
+            @currentPaths   = {}
             @updatedMap     = {}
             if name != undefined
                 @updateProp node, name
@@ -47,6 +73,9 @@ class TreeTwo
                     @history.length = @historyIndex
                 @history.push @currentActions
                 ++@historyIndex
+                console.log 'changed paths: ', @currentPaths
+                @currentActions.paths = @currentPaths
+                @dispatchBindings @currentPaths
         else
             console.error error = 'Error: object not part of this tree: ', obj
             throw new Error error
@@ -59,6 +88,8 @@ class TreeTwo
         if @historyIndex > 0
             actions = @history[--@historyIndex]
             action.undo() for action in actions
+            #console.log 'undo: ', actions
+            @dispatchBindings actions.paths
         else
             console.log 'undo not possible!!! ', @historyIndex
         null
@@ -70,9 +101,28 @@ class TreeTwo
         if @historyIndex < @history.length   
             actions = @history[@historyIndex++]
             action.redo() for action in actions
+            #console.log 'redo: ', actions
+            @dispatchBindings actions.paths
         else
             console.log 'redo not possible!!! ', @historyIndex
         null
+
+
+
+
+    dispatchBindings: (paths) ->
+        called     = []
+        dispatched = false
+        for path of paths
+            callbacks = @bindings[path]
+            #console.log 'dispatch path: ', path
+            if callbacks
+                for callback in callbacks
+                    if called.indexOf(callback) == -1
+                        callback()
+                        dispatched = true
+                        called.push callback
+        dispatched
 
 
 
@@ -88,6 +138,10 @@ class TreeTwo
                 owners: {}
 
             @nodeMap[node.id] = node
+            if owner
+                #console.log 'add path: ', name, owner
+                @addPaths owner, name, @currentPaths
+                addOwner(node, owner, name)
 
             if value
                 if value.constructor.name == 'Array'
@@ -110,8 +164,6 @@ class TreeTwo
                     node.props = props = {}
                     for key of value
                         props[key] = @createNode node, key, value[key]
-
-        addOwner(node, owner, name) if owner
         node
 
 
@@ -157,6 +209,7 @@ class TreeTwo
 
         # child exists but no value, so remove the child
         else if value == undefined
+            @updateNode child if child.type != 'value'
             removeOwner child, node, name
             @addRemoveAction child, node, name
 
@@ -182,6 +235,7 @@ class TreeTwo
 
                 # value changed from simple to complex or reverse or instance changed, so replace the child
                 if type != 'value' or type != child.type
+                    @updateNode child if child.type != 'value'
                     removeOwner child, node, name
                     next = @createNode node, name, value
                     @addSwapAction child, node, name, next
@@ -196,6 +250,7 @@ class TreeTwo
 
 
     addCreateAction: (node, owner, name) ->
+        @addPaths owner, name, @currentPaths
         @currentActions.push
             type:  'create'
             undo: () -> removeOwner node, owner, name
@@ -204,6 +259,7 @@ class TreeTwo
 
 
     addRemoveAction: (node, owner, name) ->
+        @addPaths owner, name, @currentPaths
         @currentActions.push
             type:  'remove'
             undo: () -> addOwner    node, owner, name
@@ -212,6 +268,7 @@ class TreeTwo
 
 
     addSwapAction: (node, owner, name, next) ->
+        @addPaths owner, name, @currentPaths
         @currentActions.push
             type:  'swap'
             undo: () ->
@@ -224,12 +281,13 @@ class TreeTwo
 
 
     addChangeValueAction: (node, owner, name, newValue) ->
+        @addPaths owner, name, @currentPaths
         @currentActions.push
             type:  'changeValue'
             oldValue: node.value
             undo: () ->
-                node.value        = @oldValue
-                owner.value[name] = @oldValue
+                node.value        = this.oldValue
+                owner.value[name] = this.oldValue
             redo: () ->
                 node.value        = newValue
                 owner.value[name] = newValue
@@ -242,6 +300,25 @@ class TreeTwo
             undo: () -> node.value.length = node.props.length = oldLength
             redo: () -> node.value.length = node.props.length = newLength
         null
+
+
+
+
+    addPaths: (node, path, paths, callback) ->
+        path  = if path == null or path == undefined then '' else path + ''
+        path  = '/' + path if path
+        paths = paths or {}
+        #console.log 'addPaths: ', path
+        if node == @rootNode
+            #console.log 'add path: ', path
+            paths[path] = true
+            callback path if callback
+        else
+            for id, names of node.owners
+                owner = @nodeMap[id]
+                for n of names
+                    @addPaths owner, n + path, paths, callback
+        paths
 
 
 

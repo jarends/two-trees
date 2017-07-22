@@ -10,11 +10,29 @@
 
   Context = (function() {
     function Context() {
-      var app, model;
+      var app, model, test;
       console.log(';-)');
+      test = {
+        bla: 'bla'
+      };
       model = new DataTree({
         title: 'Hello two-trees',
-        bgGreen: 255
+        bgGreen: 255,
+        test: test,
+        a: [
+          {
+            hello: 'world1'
+          }, {
+            hello: 'world2'
+          }
+        ],
+        b: {
+          c: {
+            d: [test, 1, 2, 3, 4],
+            e: ['a', 'b', 'c', test],
+            f: test
+          }
+        }
       });
       app = new AppView({
         model: model
