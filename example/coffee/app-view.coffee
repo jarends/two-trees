@@ -9,11 +9,12 @@ class AppView extends ViewTree.Node
         @model = cfg.model
         @data  = cfg.model.root
         @title = @data.title
+        @data.title = @title + " click me!"
 
 
     onClick: () =>
-        @data.bgGreen = (Math.random() * 200 + 55) >> 0
-        @data.title   = @title + '!!!!!'.slice((Math.random() * 5) >> 0)
+        @data.bgGreen = Math.random() * 100 + 155
+        @data.title   = @title + " clicks: #{@model.historyIndex + 1}"
         @model.update()
         @update()
         null
@@ -38,17 +39,20 @@ class AppView extends ViewTree.Node
             style:     "background-color: rgb(0,#{@data.bgGreen},0);"
             onClick:   @onClick
             children:  [
-                tag:      'span'
+                tag:      'div'
+                style:    'padding: 20px;'
                 children: @data.title
             ]
         ,
             tag:      'button'
             onClick:   @undo
             children: 'undo'
+            style:    "display: #{@model.historyIndex < 1 and 'none' or ''};"
         ,
             tag:      'button'
             onClick:   @redo
             children: 'redo'
+            style:    "display: #{(@model.historyIndex >= @model.history.length) and 'none' or ''};"
         ]
 
 
