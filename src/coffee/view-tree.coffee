@@ -190,7 +190,7 @@ create = (cfg, root = null, inject = null) ->
     if root != null #TODO: node.render() is called twice in this case - bad!!!
         render(node, root)
 
-    else #TODO: check, if we really want this
+    else if false #TODO: check, if we really want this
         if isSimple cfg
             updateText node, cfg
         else
@@ -342,9 +342,11 @@ updateNow = () ->
 #     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
 
 updateText = (node, cfg) ->
-    if node.cfg != cfg
+    text = (cfg.text or cfg) + ''
+    if node.text != text
         node.cfg            = cfg
-        node.view.nodeValue = cfg + ''
+        node.text           = text
+        node.view.nodeValue = text
     null
 
 
@@ -708,7 +710,7 @@ disposeNode = (node) ->
     #console.log 'disposeNode: ', node
     if node.onUnmount() != true
 
-        #console.log 'dispose node now: ', node
+        console.log 'dispose node now: ', node
         removeEvents node
 
         if node.children and node.children.length

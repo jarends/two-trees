@@ -465,7 +465,7 @@ module.id = '../src/js/view-tree.js';
     createView(node, node.render());
     if (root !== null) {
       render(node, root);
-    } else {
+    } else if (false) {
       if (isSimple(cfg)) {
         updateText(node, cfg);
       } else {
@@ -579,9 +579,12 @@ module.id = '../src/js/view-tree.js';
   };
 
   updateText = function(node, cfg) {
-    if (node.cfg !== cfg) {
+    var text;
+    text = (cfg.text || cfg) + '';
+    if (node.text !== text) {
       node.cfg = cfg;
-      node.view.nodeValue = cfg + '';
+      node.text = text;
+      node.view.nodeValue = text;
     }
     return null;
   };
@@ -868,6 +871,7 @@ module.id = '../src/js/view-tree.js';
   disposeNode = function(node) {
     var child, j, len, ref;
     if (node.onUnmount() !== true) {
+      console.log('dispose node now: ', node);
       removeEvents(node);
       if (node.children && node.children.length) {
         ref = node.children;
