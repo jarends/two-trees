@@ -32,62 +32,71 @@
     };
 
     TreeTwo.prototype.bind = function(obj, name, callback) {
-      var node, paths;
+      var error, node, paths;
       node = typeof obj === 'object' ? this.nodeMap[obj.__node_id__] : null;
-      paths = this.addPaths(node, name, null, (function(_this) {
+      if (!node) {
+        console.error(error = 'Error: object not part of this tree: ', obj);
+        throw new Error(error);
+      }
+      paths = {};
+      this.addPaths(node, name, null, (function(_this) {
         return function(path) {
           var callbacks;
           callbacks = _this.bindings[path] || (_this.bindings[path] = []);
           if (callbacks.indexOf(callback) === -1) {
             console.log('add binding: ', path);
-            return callbacks.push(callback);
+            callbacks.push(callback);
+            return paths[path] = callback;
           }
         };
       })(this));
       return paths;
     };
 
-    TreeTwo.prototype.unbind = function(obj, name, callback) {
-      var node;
-      node = typeof obj === 'object' ? this.nodeMap[obj.__node_id__] : null;
-      return this.addPaths(node, name, null, (function(_this) {
-        return function(path) {
-          var callbacks, index;
-          callbacks = _this.bindings[path];
-          if (callbacks) {
-            index = callbacks.indexOf(callback);
-            if (index > -1) {
-              return callbacks.splice(index, 1);
-            }
+    TreeTwo.prototype.unbind = function(paths) {
+      var callback, callbacks, index, path, total, unbound;
+      unbound = total = 0;
+      for (path in paths) {
+        callback = paths[path];
+        callbacks = this.bindings[path];
+        ++total;
+        if (callbacks) {
+          index = callbacks.indexOf(callback);
+          if (index > -1) {
+            ++unbound;
+            callbacks.splice(index, 1);
           }
-        };
-      })(this));
+          if (callbacks.length === 0) {
+            delete this.bindings[path];
+          }
+        }
+      }
+      return unbound === total;
     };
 
     TreeTwo.prototype.update = function(obj, name) {
       var error, node;
       node = typeof obj === 'object' ? this.nodeMap[obj.__node_id__] : this.rootNode;
-      if (node) {
-        this.currentActions = [];
-        this.currentPaths = {};
-        this.updatedMap = {};
-        if (name !== void 0) {
-          this.updateProp(node, name);
-        } else {
-          this.updateNode(node);
-        }
-        if (this.currentActions.length) {
-          if (this.historyIndex < this.history.length) {
-            this.history.length = this.historyIndex;
-          }
-          this.history.push(this.currentActions);
-          ++this.historyIndex;
-          this.currentActions.paths = this.currentPaths;
-          this.dispatchBindings(this.currentPaths);
-        }
-      } else {
+      if (!node) {
         console.error(error = 'Error: object not part of this tree: ', obj);
         throw new Error(error);
+      }
+      this.currentActions = [];
+      this.currentPaths = {};
+      this.updatedMap = {};
+      if (name !== void 0) {
+        this.updateProp(node, name);
+      } else {
+        this.updateNode(node);
+      }
+      if (this.currentActions.length) {
+        if (this.historyIndex < this.history.length) {
+          this.history.length = this.historyIndex;
+        }
+        this.history.push(this.currentActions);
+        ++this.historyIndex;
+        this.currentActions.paths = this.currentPaths;
+        this.dispatchBindings(this.currentPaths);
       }
       return false;
     };
@@ -123,13 +132,16 @@
     };
 
     TreeTwo.prototype.dispatchBindings = function(paths) {
-      var callback, callbacks, called, dispatched, j, len, name, node, path, value;
+      var callback, callbacks, called, dispatched, j, k, len, len1, name, node, parts, path, pcallbacks, ppath, value;
       called = [];
       dispatched = false;
       for (path in paths) {
         node = paths[path];
+        parts = path.split('/');
+        name = parts.pop() || '';
+        ppath = parts.join('/') + '/*';
         callbacks = this.bindings[path];
-        name = path.split('/').pop() || '';
+        pcallbacks = this.bindings[ppath];
         value = node.value;
         if (callbacks) {
           for (j = 0, len = callbacks.length; j < len; j++) {
@@ -139,6 +151,13 @@
               dispatched = true;
               called.push(callback);
             }
+          }
+        }
+        if (pcallbacks) {
+          for (k = 0, len1 = pcallbacks.length; k < len1; k++) {
+            callback = pcallbacks[k];
+            callback(value);
+            dispatched = true;
           }
         }
       }
@@ -353,7 +372,7 @@
       paths = paths || {};
       root = root || node;
       if (node === this.rootNode) {
-        paths[path] = root || node;
+        paths[path] = root;
         if (callback) {
           callback(path);
         }

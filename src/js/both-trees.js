@@ -2,7 +2,8 @@
 (function() {
   module.exports = {
     ViewTree: require('./view-tree'),
-    DataTree: require('./data-tree')
+    DataTree: require('./data-tree'),
+    Comp: require('./comp')
   };
 
 }).call(this);

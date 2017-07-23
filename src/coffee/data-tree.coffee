@@ -33,52 +33,62 @@ class TreeTwo
 
     bind: (obj, name, callback) ->
         node  = if typeof obj == 'object' then @nodeMap[obj.__node_id__] else null
-        paths = @addPaths node, name, null, (path) =>
+        if not node
+            console.error error = 'Error: object not part of this tree: ', obj
+            throw new Error error
+
+        paths = {}
+        @addPaths node, name, null, (path) =>
             callbacks = @bindings[path] or @bindings[path] = []
             if callbacks.indexOf(callback) == -1
                 console.log 'add binding: ', path
                 callbacks.push callback
+                paths[path] = callback
         #console.log 'bind to: ', paths
         paths
 
 
 
 
-    unbind: (obj, name, callback) ->
-        node = if typeof obj == 'object' then @nodeMap[obj.__node_id__] else null
-        @addPaths node, name, null, (path) =>
+    unbind: (paths) ->
+        unbound = total = 0
+        for path, callback of paths
             callbacks = @bindings[path]
+            ++total
             if callbacks
                 index = callbacks.indexOf callback
                 if index > -1
+                    ++unbound
                     callbacks.splice index, 1
+                delete @bindings[path] if callbacks.length == 0
+        unbound == total
 
 
 
 
     update: (obj, name) ->
         node = if typeof obj == 'object' then @nodeMap[obj.__node_id__] else @rootNode
-        if node
-            @currentActions = []
-            @currentPaths   = {}
-            @updatedMap     = {}
-            if name != undefined
-                @updateProp node, name
-            else
-                @updateNode node
-
-            if @currentActions.length
-                if @historyIndex < @history.length
-                    #TODO: !!! add disposement
-                    @history.length = @historyIndex
-                @history.push @currentActions
-                ++@historyIndex
-                #console.log 'changed paths: ', @currentPaths
-                @currentActions.paths = @currentPaths
-                @dispatchBindings @currentPaths
-        else
+        if not node
             console.error error = 'Error: object not part of this tree: ', obj
             throw new Error error
+
+        @currentActions = []
+        @currentPaths   = {}
+        @updatedMap     = {}
+        if name != undefined
+            @updateProp node, name
+        else
+            @updateNode node
+
+        if @currentActions.length
+            if @historyIndex < @history.length
+                #TODO: !!! add disposement
+                @history.length = @historyIndex
+            @history.push @currentActions
+            ++@historyIndex
+            #console.log 'changed paths: ', @currentPaths
+            @currentActions.paths = @currentPaths
+            @dispatchBindings @currentPaths
         false
 
 
@@ -114,9 +124,12 @@ class TreeTwo
         called     = []
         dispatched = false
         for path, node of paths
-            callbacks = @bindings[path]
-            name      = path.split('/').pop() or ''
-            value     = node.value
+            parts      = path.split '/'
+            name       = parts.pop() or ''
+            ppath      = parts.join('/') + '/*'
+            callbacks  = @bindings[path]
+            pcallbacks = @bindings[ppath]
+            value      = node.value
             #console.log 'dispatch path: ', path, node.value[name]
             if callbacks
                 for callback in callbacks
@@ -124,6 +137,13 @@ class TreeTwo
                         callback value[name], value, name, path
                         dispatched = true
                         called.push callback
+
+            if pcallbacks
+                for callback in pcallbacks
+                    #if called.indexOf(callback) == -1
+                    callback value
+                    dispatched = true
+                    #called.push callback
         dispatched
 
 
@@ -314,7 +334,7 @@ class TreeTwo
         #console.log 'addPaths: ', path
         if node == @rootNode
             #console.log 'add path: ', path
-            paths[path] = root or node
+            paths[path] = root
             callback path if callback
         else
             for id, names of node.owners

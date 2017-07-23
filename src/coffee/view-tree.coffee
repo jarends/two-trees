@@ -78,20 +78,27 @@ getCfgJson = (cfg) ->
 class Node
 
 
-    constructor: (@cfg) ->
-        nodeMap[@id = ++__id__] = @
+    constructor: (cfg) ->
+        @register(cfg)
+        console.log 'ctx: ', @ctx
 
 
-    dispose: () ->
-        null
+    register: (@cfg) ->
+        @keep = false
+        if not @__id__
+            @__id__ = ++__id__
+            nodeMap[@__id__] = @
+        @__id__
 
 
-    onMount:   () ->
-        null
+
+    dispose: () -> null
 
 
-    onUnmount: () ->
-        null
+    onMount: () -> null
+
+
+    onUnmount: () -> @keep
 
 
     needsUpdate: () -> true
@@ -164,22 +171,83 @@ unmap = (tag) ->
 #    000       000   000  000       000   000     000     000     
 #     0000000  000   000  00000000  000   000     000     00000000
 
-create = (cfg, root = null) ->
+create = (cfg, root = null, inject = null) ->
     #console.log 'ViewTree.create: ', cfg, root
     throwNodeCfgError cfg if isNot cfg
-    if isSimple cfg
-        clazz = Node
+    tag = cfg.tag
+    if isSimple(cfg) or (not tag and isSimple(cfg.text))
+        clazz = ViewTree.DEFAULT_CLASS
     else
-        if isFunc(tag = cfg.tag) and tag.prototype instanceof Node
+        if isFunc(tag) and (tag.prototype instanceof Node or tag == Node)
             clazz = cfg.tag
         else
             throwNodeCfgError cfg if not isString(tag) or tag == ''
-            clazz = tagMap[tag] or Node
+            clazz = tagMap[tag] or ViewTree.DEFAULT_CLASS
 
-    node      = new clazz cfg
-    node.view = createView node, node.render()
-    render(node, root) if root != null
+    node = createNode clazz, cfg, inject
+    createView node, node.render()
+
+    if root != null #TODO: node.render() is called twice in this case - bad!!!
+        render(node, root)
+
+    else #TODO: check, if we really want this
+        if isSimple cfg
+            updateText node, cfg
+        else
+            updateProperties node, cfg
+
+        node.onMount()
     node
+
+
+
+
+#     0000000  00000000   00000000   0000000   000000000  00000000        000   000   0000000   0000000    00000000
+#    000       000   000  000       000   000     000     000             0000  000  000   000  000   000  000     
+#    000       0000000    0000000   000000000     000     0000000         000 0 000  000   000  000   000  0000000 
+#    000       000   000  000       000   000     000     000             000  0000  000   000  000   000  000     
+#     0000000  000   000  00000000  000   000     000     00000000        000   000   0000000   0000000    00000000
+
+createNode = (clazz, cfg, inject) ->
+    inject = cfg.__i__ or inject
+    return new clazz cfg if not inject
+
+    #console.log 'INJECT: ', clazz, inject
+
+    p = clazz.prototype
+    m = {}
+    for key, value of inject
+        m[key] = p[key]
+        p[key] = value
+        #console.log 'INJECT set value: ', key, value
+
+    node       = new clazz cfg
+    node.__i__ = inject
+    delete cfg.__i__
+
+    p[key] = m[key] for key of inject
+    node
+
+
+
+
+#     0000000  00000000   00000000   0000000   000000000  00000000        000   000  000  00000000  000   000
+#    000       000   000  000       000   000     000     000             000   000  000  000       000 0 000
+#    000       0000000    0000000   000000000     000     0000000          000 000   000  0000000   000000000
+#    000       000   000  000       000   000     000     000                000     000  000       000   000
+#     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
+
+createView = (node, cfg) ->
+    throwViewCfgError(cfg) if isNot cfg
+    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
+        node.tag  = undefined
+        node.text = (cfg.text or cfg) + ''
+        node.view = document.createTextNode node.text
+    else
+        throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
+        node.tag  = tag
+        node.view =  document.createElement tag
+    node.view
 
 
 
@@ -194,7 +262,7 @@ render = (node, root) ->
     #console.log 'ViewTree.render: ', node, root
     cfg = node.render()
     if not node.view
-        node.view = createView node, cfg
+        createView node, cfg
 
     root.appendChild(node.view)
 
@@ -227,7 +295,7 @@ remove = (nodeOrRoot) ->
 #     0000000   000        0000000    000   000     000     00000000
 
 update = (node) ->
-    id = node?.id
+    id = node?.__id__
     if not id
         throw new Error "DOM ERROR: can't update node. Node doesn't exist. cfg = " + getCfgJson(node?.cfg or null)
 
@@ -267,24 +335,6 @@ updateNow = () ->
 
 
 
-#     0000000  00000000   00000000   0000000   000000000  00000000        000   000  000  00000000  000   000
-#    000       000   000  000       000   000     000     000             000   000  000  000       000 0 000
-#    000       0000000    0000000   000000000     000     0000000          000 000   000  0000000   000000000
-#    000       000   000  000       000   000     000     000                000     000  000       000   000
-#     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
-
-createView = (node, cfg) ->
-    throwViewCfgError(cfg) if isNot cfg
-    if isSimple cfg
-        node.tag = undefined
-        return document.createTextNode(cfg + '')
-    throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
-    node.tag = tag
-    document.createElement tag
-
-
-
-
 #    000   000  00000000   0000000     0000000   000000000  00000000        000000000  00000000  000   000  000000000
 #    000   000  000   000  000   000  000   000     000     000                000     000        000 000      000   
 #    000   000  00000000   000   000  000000000     000     0000000            000     0000000     00000       000   
@@ -311,6 +361,9 @@ updateProperties = (node, cfg) ->
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, node.attrs, node.events, cfg
     delete propMap.tag
+    delete propMap.__i__
+    delete propMap.keep
+    delete propMap.text
     delete propMap.children
     delete propMap.style
     delete propMap.className
@@ -561,9 +614,10 @@ change = (node, cfg) ->
 
 addChild = (node, cfg) ->
     if cfg instanceof Node
-        child = node
+        child = cfg
+        cfg   = child.render()
     else
-        child = create cfg
+        child = create cfg, null, cfg.__i__ or node.__i__
 
     if not child.view
         child.view = createView child, cfg
@@ -571,7 +625,9 @@ addChild = (node, cfg) ->
     node.children.push child
     node.view.appendChild child.view
     child.parent = node
-    if isSimple cfg
+
+
+    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
         updateText child, cfg
     else
         updateProperties child, cfg
@@ -589,9 +645,14 @@ addChild = (node, cfg) ->
 #    000   000  00000000  000   000   0000000       0      00000000
 
 removeChild = (child) ->
+    #TODO: node.children currently not handled -> handled by changing node.children.length in updateChildren
+
+    #console.log 'removeChild: ', child, node
+
     node = child.parent
+    view = child.view
     disposeNode child
-    node.view.removeChild child.view
+    node.view.removeChild view
     null
 
 
@@ -614,8 +675,9 @@ replaceChild = (child, cfg) ->
 
     if cfg instanceof Node
         child = cfg
+        cfg   = child.render()
     else
-        child = create cfg
+        child = create cfg, null, cfg.__i__ or node.__i__
 
     if not child.view
         child.view = createView child, cfg
@@ -624,7 +686,7 @@ replaceChild = (child, cfg) ->
     child.parent = node
     node.view.replaceChild child.view, view
 
-    if isSimple cfg
+    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
         updateText child, cfg
     else
         updateProperties child, cfg
@@ -643,15 +705,20 @@ replaceChild = (child, cfg) ->
 #    0000000    000  0000000   000         0000000   0000000   00000000
 
 disposeNode = (node) ->
-    console.log 'disposeNode: ', node
-    delete nodeMap[node.id]
+    #console.log 'disposeNode: ', node
+    if node.onUnmount() != true
 
-    removeEvents node
+        #console.log 'dispose node now: ', node
+        removeEvents node
 
-    if node.children and node.children.length
-        disposeNode child for child in node.children
+        if node.children and node.children.length
+            disposeNode child for child in node.children
 
-    child.parent = null
+        delete node.children
+        delete node.view
+        delete nodeMap[node.__id__]
+
+    node.parent = null
     null
 
 
@@ -678,7 +745,7 @@ if typeof window != 'undefined'
 
     if not window.requestAnimationFrame
         window.requestAnimationFrame = (callback) ->
-            currTime   = new Date().getTime()
+            currTime   = Date.now()
             timeToCall = Math.max 0, 16 - currTime + lastTime
             rAF        = () -> callback currTime + timeToCall
             id         = window.setTimeout rAF, timeToCall
@@ -715,16 +782,19 @@ if typeof Object.assign == 'undefined'
 
 
 ViewTree =
-    Node:           Node
-    COMP_CFG_ERROR: COMP_CFG_ERROR
-    VIEW_CFG_ERROR: VIEW_CFG_ERROR
-    map:            map
-    unmap:          unmap
-    create:         create
-    render:         render
-    remove:         remove
-    update:         update
-    updateNow:      updateNow
+    Node:             Node
+    DEFAULT_CLASS:    Node
+    HANDLE_CTX:       true
+    HANDLE_DATA_TREE: true
+    COMP_CFG_ERROR:   COMP_CFG_ERROR
+    VIEW_CFG_ERROR:   VIEW_CFG_ERROR
+    map:              map
+    unmap:            unmap
+    create:           create
+    render:           render
+    remove:           remove
+    update:           update
+    updateNow:        updateNow
 
 
 

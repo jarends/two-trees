@@ -34,8 +34,12 @@
           }
         }
       });
-      app = new AppView({
-        model: model
+      app = ViewTree.create({
+        tag: AppView,
+        model: model,
+        __i__: {
+          ctx: this
+        }
       });
       ViewTree.render(app, document.querySelector('.app'));
 

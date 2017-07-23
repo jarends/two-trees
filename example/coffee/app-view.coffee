@@ -10,13 +10,27 @@ class AppView extends ViewTree.Node
         @data  = cfg.model.root
         @title = @data.title
 
-        @model.bind @data.test, 'bla',      (value, obj, name, path) -> console.log 'test.bla changed: ',     value
-        @model.bind @data,      'bgGreen',  (value, obj, name, path) -> console.log 'bgGreen changed: ',      value
+
+        @bgGreen1 = @model.bind @data,      'bgGreen',  (value, obj, name, path) => console.log 'bgGreen1 changed: ', value
+        @bgGreen2 = @model.bind @data,      'bgGreen',  (value, obj, name, path) => console.log 'bgGreen2 changed: ', value
+        @model.bind @data.test, 'bla',      (value, obj, name, path) => console.log 'test.bla changed: ',     value
         @model.bind @data.a[0], null,       (value, obj, name, path) -> console.log 'a[0] changed: ',         value
-        @model.bind @data.a,    '0',        (value, obj, name, path) -> console.log 'a.0 changed: ',          value
         @model.bind @data.a[0], 'hello',    (value, obj, name, path) -> console.log 'a.0.hello changed: ',    value
         @model.bind @data.a[0], 'helloNew', (value, obj, name, path) -> console.log 'a.0.helloNew changed: ', value
+        @model.bind @data.a[0], '*',        (value, obj, name, path) -> console.log 'a.0.* changed: ',        value
+        @clicks = 0
 
+        @greater = ViewTree.create
+            tag: 'h5'
+            children: 'greater 128'
+            onClick: @onGreaterClicked
+
+        @greater.keep = true
+        #console.log 'APP VIEW: ', @ctx
+
+
+    onGreaterClicked: () =>
+        console.log 'greater clicked'
 
     onClick: () =>
         @data.bgGreen    = (Math.random() * 200 + 55) >> 0
@@ -27,6 +41,10 @@ class AppView extends ViewTree.Node
 
         @model.update()
         @update()
+
+        if ++@clicks == 5
+            console.log 'unbind bgGreen'
+            @model.unbind @bgGreen1
         null
 
 
@@ -43,8 +61,7 @@ class AppView extends ViewTree.Node
 
 
     render: () ->
-        tag: 'div'
-        children: [
+        children = [
             tag:       'h1'
             title:     'page title'
             className: 'my-class'
@@ -52,7 +69,10 @@ class AppView extends ViewTree.Node
             onClick:   @onClick
             children:  [
                 tag:      'span'
-                children: @data.title
+                children: [
+                    text: @data.title
+                ]
+                __i__: ctx: @
             ]
         ,
             tag:      'button'
@@ -63,6 +83,13 @@ class AppView extends ViewTree.Node
             onClick:   @redo
             children: 'redo'
         ]
+
+        if @data.bgGreen > 128
+            children.push @greater
+
+        tag:      'div'
+        children: children
+
 
 
 

@@ -26,8 +26,11 @@ class Context
                     e: ['a', 'b', 'c', test]
                     f: test
 
-
-        app = new AppView model: model
+        app = ViewTree.create
+            tag:   AppView
+            model: model
+            __i__:
+                ctx:@
         ViewTree.render app, document.querySelector '.app'
 
         ###
