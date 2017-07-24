@@ -427,9 +427,6 @@ updateAttr = (node, value, name) ->
 #     0000000  0000000  000   000  0000000   0000000
 
 updateClass = (node, value) ->
-
-    console.log 'updateClass: ', value, node
-
     return if node.attrs.className == value
     if value
         node.view.className  = value
@@ -449,9 +446,6 @@ updateClass = (node, value) ->
 #    0000000      000        000     0000000  00000000
 
 updateStyle = (node, style) ->
-
-    console.log 'updateStyle: ', style, node
-
     view  = node.view
     attrs = node.attrs
     sobj  = attrs.style

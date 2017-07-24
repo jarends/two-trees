@@ -608,7 +608,6 @@ module.id = '../src/js/view-tree.js';
   };
 
   updateClass = function(node, value) {
-    console.log('updateClass: ', value, node);
     if (node.attrs.className === value) {
       return;
     }
@@ -624,7 +623,6 @@ module.id = '../src/js/view-tree.js';
 
   updateStyle = function(node, style) {
     var attrs, changed, css, name, prop, propMap, sobj, value, view;
-    console.log('updateStyle: ', style, node);
     view = node.view;
     attrs = node.attrs;
     sobj = attrs.style;

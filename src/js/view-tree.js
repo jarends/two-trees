@@ -385,7 +385,6 @@
   };
 
   updateClass = function(node, value) {
-    console.log('updateClass: ', value, node);
     if (node.attrs.className === value) {
       return;
     }
@@ -401,7 +400,6 @@
 
   updateStyle = function(node, style) {
     var attrs, changed, css, name, prop, propMap, sobj, value, view;
-    console.log('updateStyle: ', style, node);
     view = node.view;
     attrs = node.attrs;
     sobj = attrs.style;
