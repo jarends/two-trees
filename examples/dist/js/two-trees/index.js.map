@@ -1,9 +1,9 @@
 {
   "version": 3,
-  "file": "two-trees.js",
+  "file": "index.js",
   "sourceRoot": "../../../..",
   "sources": [
-    "examples/app/two-trees.coffee"
+    "examples/two-trees/index.coffee"
   ],
   "names": [],
   "mappings": ";AAAA;EAAA,MAAM,CAAC,OAAP,GAAiB,OAAA,CAAQ,oBAAR;AAAjB"

@@ -1,4 +1,4 @@
-ViewTree = require('../app/two-trees').ViewTree
+ViewTree = require('../two-trees').ViewTree
 
 app = ViewTree.create 'Hello World ;-)'
 

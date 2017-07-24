@@ -1,4 +1,4 @@
-trees    = require '../app/two-trees'
+trees    = require '../two-trees'
 AppView  = require './app-view'
 ViewTree = trees.ViewTree
 DataTree = trees.DataTree

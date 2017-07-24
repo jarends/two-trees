@@ -2,7 +2,7 @@
 (function() {
   var AppView, DataTree, ViewTree, app, model, trees;
 
-  trees = require('../app/two-trees');
+  trees = require('../two-trees');
 
   AppView = require('./app-view');
 

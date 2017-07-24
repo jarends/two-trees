@@ -11,11 +11,11 @@
         "src-watch": "coffee -w -m -o ./src/js ./src/coffee",
         "test-once": "coffee -c -m -o ./test/js ./test/coffee && wzp -em -im -bp ./test -p ./js/index.js && karma start --single-run || true",
         "test-watch": "concurrently -k -r 'coffee -w -m -o ./test/js ./test/coffee' 'wzp -w -em -im -bp ./test -p ./js/index.js' 'karma start || true'",
-        "e-app": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/app ./examples/app' 'wzp -w -em -im -bp ./examples/dist -p ./js/app/main.js'",
+        "e-app": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/app ./examples/app' 'coffee -w -m -o ./examples/dist/js/two-trees ./examples/two-trees' 'wzp -w -em -im -bp ./examples/dist -p ./js/app/main.js'",
         "e-sass": "node-sass --source-map true -w -o ./examples/dist/css ./examples/scss",
         "e00": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/00 ./examples/00-hello-world' 'wzp -w -em -im -bp ./examples/dist -p ./js/00/main.js'",
         "e01": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/01 ./examples/01-simple' 'wzp -w -em -im -bp ./examples/dist -p ./js/01/main.js'",
-        "e": "concurrently 'npm run e-sass' 'npm run e-app' 'npm run e00' 'npm run e01'"
+        "e": "concurrently -k -r  'npm run e-sass' 'npm run e-app' 'npm run e00' 'npm run e01'"
     },
     "repository": {
         "type": "git",
