@@ -8,4 +8,4 @@
 
 }).call(this);
 
-//# sourceMappingURL=both-trees.js.map
+//# sourceMappingURL=index.js.map

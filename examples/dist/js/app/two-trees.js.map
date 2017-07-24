@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "two-trees.js",
+  "sourceRoot": "../../../..",
+  "sources": [
+    "examples/app/two-trees.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;EAAA,MAAM,CAAC,OAAP,GAAiB,OAAA,CAAQ,oBAAR;AAAjB"
+}

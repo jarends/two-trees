@@ -1,4 +1,4 @@
-ViewTree = require '../../src/js/view-tree'
+ViewTree = require('../app/two-trees').ViewTree
 
 
 class AppView extends ViewTree.Node

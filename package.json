@@ -2,17 +2,20 @@
     "name": "two-trees",
     "version": "0.0.2",
     "description": "a somehow virtual dom and a 'virtual data object model' ;-) with redo/undo",
-    "main": "src/js/both-trees.js",
+    "main": "src/js/index.js",
     "scripts": {
         "start": "npm run watch",
-        "once": "npm run src-once && npm run test-once && npm run example-once",
-        "watch": "concurrently -k -r 'salter' 'npm run src-watch' 'npm run example-watch' 'npm run test-watch'",
+        "once": "npm run src-once && npm run test-once",
+        "watch": "concurrently -k -r 'salter' 'npm run src-watch' 'npm run test-watch'",
         "src-once": "coffee -c -m -o ./src/js ./src/coffee",
         "src-watch": "coffee -w -m -o ./src/js ./src/coffee",
-        "example-once": "coffee -c -m -o ./example/js ./example/coffee && node-sass --source-map true -o ./example/css ./example/scss && wzp -em -im -bp ./example -cp ./js/chunk_ -p ./js/context.js",
-        "example-watch": "concurrently -k -r 'coffee -w -m -o ./example/js ./example/coffee' 'node-sass --source-map true -w -o ./example/css ./example/scss' 'wzp -w -em -im -bp ./example -cp ./js/chunk_ -p ./js/context.js'",
         "test-once": "coffee -c -m -o ./test/js ./test/coffee && wzp -em -im -bp ./test -p ./js/index.js && karma start --single-run || true",
-        "test-watch": "concurrently -k -r 'coffee -w -m -o ./test/js ./test/coffee' 'wzp -w -em -im -bp ./test -p ./js/index.js' 'karma start || true'"
+        "test-watch": "concurrently -k -r 'coffee -w -m -o ./test/js ./test/coffee' 'wzp -w -em -im -bp ./test -p ./js/index.js' 'karma start || true'",
+        "e-app": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/app ./examples/app' 'wzp -w -em -im -bp ./examples/dist -p ./js/app/main.js'",
+        "e-sass": "node-sass --source-map true -w -o ./examples/dist/css ./examples/scss",
+        "e00": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/00 ./examples/00-hello-world' 'wzp -w -em -im -bp ./examples/dist -p ./js/00/main.js'",
+        "e01": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/01 ./examples/01-simple' 'wzp -w -em -im -bp ./examples/dist -p ./js/01/main.js'",
+        "e": "concurrently 'npm run e-sass' 'npm run e-app' 'npm run e00' 'npm run e01'"
     },
     "repository": {
         "type": "git",

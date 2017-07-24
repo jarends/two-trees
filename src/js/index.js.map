@@ -1,9 +1,9 @@
 {
   "version": 3,
-  "file": "both-trees.js",
+  "file": "index.js",
   "sourceRoot": "../..",
   "sources": [
-    "src/coffee/both-trees.coffee"
+    "src/coffee/index.coffee"
   ],
   "names": [],
   "mappings": ";AAAA;EAAA,MAAM,CAAC,OAAP,GACI;IAAA,QAAA,EAAU,OAAA,CAAQ,aAAR,CAAV;IACA,QAAA,EAAU,OAAA,CAAQ,aAAR,CADV;IAEA,IAAA,EAAU,OAAA,CAAQ,QAAR,CAFV;;AADJ"

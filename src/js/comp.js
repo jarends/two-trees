@@ -65,6 +65,8 @@
 
   })(ViewTree.Node);
 
+  module.exports = Comp;
+
 }).call(this);
 
 //# sourceMappingURL=comp.js.map

@@ -58,3 +58,8 @@ class Comp extends ViewTree.Node
     onUnmount: () ->
         @unbindAll()
         super()
+
+
+
+
+module.exports = Comp
