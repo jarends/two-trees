@@ -94,7 +94,6 @@
   Node = (function() {
     function Node(cfg) {
       this.register(cfg);
-      console.log('ctx: ', this.ctx);
     }
 
     Node.prototype.register = function(cfg1) {

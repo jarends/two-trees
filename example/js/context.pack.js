@@ -7,7 +7,7 @@
         index:      0,
         total:      1,
         startIndex: 0,
-        type:       'register::0.5246747220596164_1500711890186',
+        type:       'register::0.34007523271947826_1500901602033',
         path:       '/Users/JOA/Projects/workspaces/my/two-trees/example/js/context.js',
         pack:       pack
     };
@@ -353,7 +353,6 @@ module.id = '../src/js/view-tree.js';
   Node = (function() {
     function Node(cfg) {
       this.register(cfg);
-      console.log('ctx: ', this.ctx);
     }
 
     Node.prototype.register = function(cfg1) {

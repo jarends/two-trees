@@ -80,7 +80,7 @@ class Node
 
     constructor: (cfg) ->
         @register(cfg)
-        console.log 'ctx: ', @ctx
+        #console.log 'ctx: ', @ctx
 
 
     register: (@cfg) ->
