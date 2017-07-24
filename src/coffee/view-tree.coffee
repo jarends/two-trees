@@ -361,7 +361,17 @@ updateText = (node, cfg) ->
 updateProperties = (node, cfg) ->
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
-    propMap = Object.assign {}, node.attrs, node.events, cfg
+    propMap = Object.assign {}, attrs, node.events, cfg
+
+    if propMap.hasOwnProperty 'className'
+        updateClass node, cfg.className
+
+    if propMap.hasOwnProperty 'style'
+        updateStyle node, cfg.style
+
+    if propMap.hasOwnProperty 'children'
+        updateChildren node, cfg.children
+
     delete propMap.tag
     delete propMap.__i__
     delete propMap.keep
@@ -380,16 +390,6 @@ updateProperties = (node, cfg) ->
                 updateEvent node, value, name
             else
                 updateAttr node, value, name
-
-    if attrs.className or cfg.className
-        updateClass node, value
-
-    if attrs.style or cfg.style
-        updateStyle node, cfg.style
-
-    if attrs.children or cfg.children
-        updateChildren node, cfg.children
-
     null
 
 
@@ -427,12 +427,15 @@ updateAttr = (node, value, name) ->
 #     0000000  0000000  000   000  0000000   0000000
 
 updateClass = (node, value) ->
+
+    console.log 'updateClass: ', value, node
+
     return if node.attrs.className == value
     if value
-        node.view.setAttribute 'class', value
+        node.view.className  = value
         node.attrs.className = value
     else
-        node.view.removeAttribute 'class'
+        node.view.className  = undefined
         delete node.attrs.className
     null
 
@@ -446,6 +449,9 @@ updateClass = (node, value) ->
 #    0000000      000        000     0000000  00000000
 
 updateStyle = (node, style) ->
+
+    console.log 'updateStyle: ', style, node
+
     view  = node.view
     attrs = node.attrs
     sobj  = attrs.style

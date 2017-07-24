@@ -7,7 +7,7 @@
         index:      0,
         total:      1,
         startIndex: 0,
-        type:       'register::0.26926115967878794_1500901602076',
+        type:       'register::0.47773009349120743_1500917226969',
         path:       '/Users/JOA/Projects/workspaces/my/two-trees/test/js/index.js',
         pack:       pack
     };
@@ -755,7 +755,16 @@ module.id = '../src/js/view-tree.js';
       cfg = cfg.render();
     }
     attrs = node.attrs || (node.attrs = {});
-    propMap = Object.assign({}, node.attrs, node.events, cfg);
+    propMap = Object.assign({}, attrs, node.events, cfg);
+    if (propMap.hasOwnProperty('className')) {
+      updateClass(node, cfg.className);
+    }
+    if (propMap.hasOwnProperty('style')) {
+      updateStyle(node, cfg.style);
+    }
+    if (propMap.hasOwnProperty('children')) {
+      updateChildren(node, cfg.children);
+    }
     delete propMap.tag;
     delete propMap.__i__;
     delete propMap.keep;
@@ -775,15 +784,6 @@ module.id = '../src/js/view-tree.js';
           updateAttr(node, value, name);
         }
       }
-    }
-    if (attrs.className || cfg.className) {
-      updateClass(node, value);
-    }
-    if (attrs.style || cfg.style) {
-      updateStyle(node, cfg.style);
-    }
-    if (attrs.children || cfg.children) {
-      updateChildren(node, cfg.children);
     }
     return null;
   };
@@ -805,14 +805,15 @@ module.id = '../src/js/view-tree.js';
   };
 
   updateClass = function(node, value) {
+    console.log('updateClass: ', value, node);
     if (node.attrs.className === value) {
       return;
     }
     if (value) {
-      node.view.setAttribute('class', value);
+      node.view.className = value;
       node.attrs.className = value;
     } else {
-      node.view.removeAttribute('class');
+      node.view.className = void 0;
       delete node.attrs.className;
     }
     return null;
@@ -820,6 +821,7 @@ module.id = '../src/js/view-tree.js';
 
   updateStyle = function(node, style) {
     var attrs, changed, css, name, prop, propMap, sobj, value, view;
+    console.log('updateStyle: ', style, node);
     view = node.view;
     attrs = node.attrs;
     sobj = attrs.style;

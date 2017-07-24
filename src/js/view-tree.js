@@ -335,7 +335,16 @@
       cfg = cfg.render();
     }
     attrs = node.attrs || (node.attrs = {});
-    propMap = Object.assign({}, node.attrs, node.events, cfg);
+    propMap = Object.assign({}, attrs, node.events, cfg);
+    if (propMap.hasOwnProperty('className')) {
+      updateClass(node, cfg.className);
+    }
+    if (propMap.hasOwnProperty('style')) {
+      updateStyle(node, cfg.style);
+    }
+    if (propMap.hasOwnProperty('children')) {
+      updateChildren(node, cfg.children);
+    }
     delete propMap.tag;
     delete propMap.__i__;
     delete propMap.keep;
@@ -355,15 +364,6 @@
           updateAttr(node, value, name);
         }
       }
-    }
-    if (attrs.className || cfg.className) {
-      updateClass(node, value);
-    }
-    if (attrs.style || cfg.style) {
-      updateStyle(node, cfg.style);
-    }
-    if (attrs.children || cfg.children) {
-      updateChildren(node, cfg.children);
     }
     return null;
   };
@@ -385,14 +385,15 @@
   };
 
   updateClass = function(node, value) {
+    console.log('updateClass: ', value, node);
     if (node.attrs.className === value) {
       return;
     }
     if (value) {
-      node.view.setAttribute('class', value);
+      node.view.className = value;
       node.attrs.className = value;
     } else {
-      node.view.removeAttribute('class');
+      node.view.className = void 0;
       delete node.attrs.className;
     }
     return null;
@@ -400,6 +401,7 @@
 
   updateStyle = function(node, style) {
     var attrs, changed, css, name, prop, propMap, sobj, value, view;
+    console.log('updateStyle: ', style, node);
     view = node.view;
     attrs = node.attrs;
     sobj = attrs.style;

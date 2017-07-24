@@ -10,52 +10,16 @@
 
   Context = (function() {
     function Context() {
-      var app, model, test;
-      console.log(';-)');
-      test = {
-        bla: 'bla'
-      };
+      var app, model;
       model = new DataTree({
-        title: 'Hello two-trees',
-        bgGreen: 255,
-        test: test,
-        a: [
-          {
-            hello: 'world1'
-          }, {
-            hello: 'world2'
-          }
-        ],
-        b: {
-          c: {
-            d: [test, 1, 2, 3, 4],
-            e: ['a', 'b', 'c', test],
-            f: test
-          }
-        }
+        title: 'hello two-trees!',
+        bgGreen: 255
       });
-      app = ViewTree.create({
+      app = new AppView({
         tag: AppView,
-        model: model,
-        __i__: {
-          ctx: this
-        }
+        model: model
       });
       ViewTree.render(app, document.querySelector('.app'));
-
-      /*
-      Treedom.map 'app', AppView
-      Treedom.create tag: 'app'
-      Treedom.create 'Hello Text Node'
-      Treedom.create
-          tag: 'h1'
-          children: 'Hello H1 Node'
-      
-      
-      test = require 'es6-promise!./test'
-      test().then (result) ->
-          console.log 'test exports: ', result
-       */
     }
 
     return Context;
