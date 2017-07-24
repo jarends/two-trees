@@ -1,6 +1,10 @@
 __id__ = 0
 
 
+TEXT_KIND = 0
+NODE_KIND = 1
+
+
 COMP_CFG_ERROR = 'Cfg for creating a node must either be a string or an object containing a tag property as not empty string or a node class.'
 VIEW_CFG_ERROR = 'Cfg for creating a view must either be a string or an object containing a tag property as not empty string'
 
@@ -13,8 +17,7 @@ isFunc   = (value) -> typeof value == 'function'
 isHTML   = (value) -> value instanceof HTMLElement
 isNot    = (value) -> value == null or value == undefined
 isSimple = (value) ->
-    t = typeof value
-    t == 'string' or t == 'number' or t == 'boolean' or value == value + '' or value == true or value == false or not isNaN value
+    (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
 
 
 
@@ -103,7 +106,7 @@ class Node
 
     needsUpdate: () -> true
     canUpdate:   () -> true
-    update:      () -> update @
+    update:      () => update @
     render:      () -> @cfg
 
 
@@ -239,7 +242,7 @@ createNode = (clazz, cfg, inject) ->
 
 createView = (node, cfg) ->
     throwViewCfgError(cfg) if isNot cfg
-    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
+    if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
         node.tag  = undefined
         node.text = (cfg.text or cfg) + ''
         node.view = document.createTextNode node.text
@@ -326,6 +329,7 @@ updateNow = () ->
     for node in nodes
         continue if not node
         cfg = node.render()
+
         if node.tag != cfg.tag
             replaceChild node, cfg
         else
@@ -342,6 +346,7 @@ updateNow = () ->
 #     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
 
 updateText = (node, cfg) ->
+    #console.log 'UPDATE TEXT: ', node
     text = (cfg.text or cfg) + ''
     if node.text != text
         node.cfg            = cfg
@@ -359,6 +364,7 @@ updateText = (node, cfg) ->
 #     0000000   000        0000000    000   000     000     00000000        000        000   000   0000000   000        0000000 
 
 updateProperties = (node, cfg) ->
+    #console.log 'UPDATE PROPS: ', node
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
@@ -376,9 +382,10 @@ updateProperties = (node, cfg) ->
     delete propMap.__i__
     delete propMap.keep
     delete propMap.text
-    delete propMap.children
-    delete propMap.style
     delete propMap.className
+    delete propMap.style
+    delete propMap.children
+    delete propMap.bindings
 
     for name of propMap
         attr  = attrs[name]
@@ -389,6 +396,7 @@ updateProperties = (node, cfg) ->
             if /^on/.test name
                 updateEvent node, value, name
             else
+                value = value() if isFunc value
                 updateAttr node, value, name
     null
 
@@ -420,6 +428,31 @@ updateAttr = (node, value, name) ->
 
 
 
+#    0000000     0000000    0000000   000
+#    000   000  000   000  000   000  000
+#    0000000    000   000  000   000  000
+#    000   000  000   000  000   000  000
+#    0000000     0000000    0000000   0000000
+
+updateBool = (node, value, name) ->
+    return if node.attrs[name] == value
+    view = node.view
+    if isNot value
+        view.removeAttribute name
+        delete node.attrs[name]
+    else
+        node.attrs[name] = value
+        if value
+            view.setAttribute name, ''
+            view[name] = true
+        else
+            view.removeAttribute name
+            view[name] = false
+    null
+
+
+
+
 #     0000000  000       0000000    0000000   0000000
 #    000       000      000   000  000       000
 #    000       000      000000000  0000000   0000000
@@ -427,6 +460,8 @@ updateAttr = (node, value, name) ->
 #     0000000  0000000  000   000  0000000   0000000
 
 updateClass = (node, value) ->
+    value = value() if isFunc value
+
     return if node.attrs.className == value
     if value
         node.view.className  = value
@@ -449,6 +484,8 @@ updateStyle = (node, style) ->
     view  = node.view
     attrs = node.attrs
     sobj  = attrs.style
+
+    style = style() if isFunc style
 
     if isNot style
         view.style.cssText = null
@@ -481,31 +518,6 @@ updateStyle = (node, style) ->
             else
                 view.style.cssText = null
                 delete attrs.style
-    null
-
-
-
-
-#    0000000     0000000    0000000   000
-#    000   000  000   000  000   000  000
-#    0000000    000   000  000   000  000
-#    000   000  000   000  000   000  000
-#    0000000     0000000    0000000   0000000
-
-updateBool = (node, value, name) ->
-    return if node.attrs[name] == value
-    view = node.view
-    if isNot value
-        view.removeAttribute name
-        delete node.attrs[name]
-    else
-        node.attrs[name] = value
-        if value
-            view.setAttribute name, ''
-            view[name] = true
-        else
-            view.removeAttribute name
-            view[name] = false
     null
 
 
@@ -559,11 +571,13 @@ removeEvents = (node) ->
 
 updateChildren = (node, cfgs) ->
     children = node.children or node.children = []
+    cfgs     = cfgs() if isFunc cfgs
     cfgs     = if isString(cfgs) then [cfgs] else cfgs or []
     l        = if children.length > cfgs.length then children.length else cfgs.length
     for i in [0...l]
         child = children[i]
         cfg   = cfgs[i]
+        cfg   = cfg() if isFunc cfg
 
         if not child and not cfg
             throw new Error "DOM ERROR: either child or cfg at index #{i} must be defined. Got " + child + ', ' + cfg
@@ -588,20 +602,22 @@ updateChildren = (node, cfgs) ->
 change = (node, cfg) ->
     canUpdate   = node.canUpdate()
     needsUpdate = node.needsUpdate()
-    if node == cfg and needsUpdate
-        if canUpdate
+    if node == cfg
+        if needsUpdate and canUpdate
             updateProperties node, node.render()
-        else
+        else if needsUpdate and not canUpdate
             replaceChild node, node.render()
 
-    else if node.tag != cfg.tag
+        # node don't wants to be updated
+
+    else if node.tag != cfg.tag or cfg instanceof Node
         replaceChild node, cfg
 
     else if node.tag == undefined # text node
         updateText node, cfg
 
     else if canUpdate and needsUpdate # tag node
-        updateProperties node, cfg #TODO: cfg can be a node
+        updateProperties node, cfg
 
     false
 
