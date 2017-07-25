@@ -9,6 +9,7 @@ model = new DataTree
 
 app = ViewTree.create
     tag:   AppView
-    model: model
+    __i__:
+        tree: model
 
 ViewTree.render app, document.querySelector '.app'
