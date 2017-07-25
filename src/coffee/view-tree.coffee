@@ -181,7 +181,8 @@ create = (cfg, root = null, inject = null) ->
     if isSimple(cfg) or (not tag and isSimple(cfg.text))
         clazz = ViewTree.DEFAULT_CLASS
     else
-        if isFunc(tag) and (tag.prototype instanceof Node or tag == Node)
+        console.log 'create node is func: ', isFunc(tag), tag.prototype instanceof Node, tag == Node
+        if isFunc(tag) and ((tag.prototype instanceof Node) or tag == Node)
             clazz = cfg.tag
         else
             throwNodeCfgError cfg if not isString(tag) or tag == ''
@@ -643,10 +644,10 @@ change = (node, cfg) ->
 addChild = (node, cfg) ->
     if cfg instanceof Node
         child = cfg
-        cfg   = child.render()
     else
         child = create cfg, null, cfg.__i__ or node.__i__
 
+    cfg = child.render()
     if not child.view
         child.view = createView child, cfg
 
@@ -693,7 +694,7 @@ removeChild = (child) ->
 #    000   000  00000000  000        0000000  000   000   0000000  00000000
 
 replaceChild = (child, cfg) ->
-    consol.log 'ViewTree.replaceChild: ', child, cfg
+    console.log 'ViewTree.replaceChild: ', child, cfg
     node     = child.parent
     children = node.children
     i        = children.indexOf child
@@ -707,6 +708,7 @@ replaceChild = (child, cfg) ->
     else
         child = create cfg, null, cfg.__i__ or node.__i__
 
+    cfg = child.render()
     if not child.view
         child.view = createView child, cfg
 

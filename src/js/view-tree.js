@@ -577,10 +577,10 @@
     var child;
     if (cfg instanceof Node) {
       child = cfg;
-      cfg = child.render();
     } else {
       child = create(cfg, null, cfg.__i__ || node.__i__);
     }
+    cfg = child.render();
     if (!child.view) {
       child.view = createView(child, cfg);
     }
@@ -607,7 +607,7 @@
 
   replaceChild = function(child, cfg) {
     var children, i, node, view;
-    consol.log('ViewTree.replaceChild: ', child, cfg);
+    console.log('ViewTree.replaceChild: ', child, cfg);
     node = child.parent;
     children = node.children;
     i = children.indexOf(child);
@@ -619,6 +619,7 @@
     } else {
       child = create(cfg, null, cfg.__i__ || node.__i__);
     }
+    cfg = child.render();
     if (!child.view) {
       child.view = createView(child, cfg);
     }
