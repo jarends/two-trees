@@ -1590,7 +1590,7 @@ module.id = 'js/03/app-view.js';
             tag: 'button',
             disabled: (function(_this) {
               return function() {
-                return _this.data.clicks === _this.model.history.length;
+                return _this.data.clicks >= _this.model.history.length;
               };
             })(this),
             onClick: (function(_this) {

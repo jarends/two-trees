@@ -578,6 +578,7 @@ removeEvents = (node) ->
 #     0000000  000   000  000  0000000  0000000    000   000  00000000  000   000
 
 updateChildren = (node, cfgs) ->
+    #TODO: allow object as only child
     children = node.children or node.children = []
     cfgs     = cfgs() if isFunc cfgs
     cfgs     = if isString(cfgs) then [cfgs] else cfgs or []

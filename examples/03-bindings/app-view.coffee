@@ -43,7 +43,7 @@ class AppView extends ViewTree.Node
                 children: 'undo'
             ,
                 tag:      'button'
-                disabled: () => @data.clicks == @model.history.length
+                disabled: () => @data.clicks >= @model.history.length
                 onClick:  () => @model.redo()
                 bindings: [
                     [@data, 'clicks']
