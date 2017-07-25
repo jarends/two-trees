@@ -11,8 +11,7 @@
 
     function AppView(cfg) {
       AppView.__super__.constructor.call(this, cfg);
-      this.model = this.tree;
-      this.data = cfg.model.root;
+      this.data = this.tree.root;
     }
 
     AppView.prototype.render = function() {
@@ -26,7 +25,7 @@
               return function() {
                 ++_this.data.clicks;
                 _this.data.bgGreen = (Math.random() * 100 + 155) >> 0;
-                return _this.model.update();
+                return _this.tree.update();
               };
             })(this),
             children: [
@@ -58,7 +57,7 @@
             })(this),
             onClick: (function(_this) {
               return function() {
-                return _this.model.undo();
+                return _this.tree.undo();
               };
             })(this),
             bindings: [[this.data, 'clicks']],
@@ -67,12 +66,12 @@
             tag: 'button',
             disabled: (function(_this) {
               return function() {
-                return _this.data.clicks >= _this.model.history.length;
+                return _this.data.clicks >= _this.tree.history.length;
               };
             })(this),
             onClick: (function(_this) {
               return function() {
-                return _this.model.redo();
+                return _this.tree.redo();
               };
             })(this),
             bindings: [[this.data, 'clicks']],

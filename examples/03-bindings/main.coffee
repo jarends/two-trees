@@ -12,13 +12,10 @@ model = new DataTree
     title:   'hello two-trees!'
     bgGreen: 255
     clicks:  0
-    obj:
-        test: 'hello'
 
 
 app = ViewTree.create
-    tag:   AppView
-    model: model
+    tag: AppView
     __i__:
         tree: model
 

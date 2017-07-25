@@ -17,15 +17,11 @@
   model = new DataTree({
     title: 'hello two-trees!',
     bgGreen: 255,
-    clicks: 0,
-    obj: {
-      test: 'hello'
-    }
+    clicks: 0
   });
 
   app = ViewTree.create({
     tag: AppView,
-    model: model,
     __i__: {
       tree: model
     }

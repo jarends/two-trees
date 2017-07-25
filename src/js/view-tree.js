@@ -236,8 +236,9 @@
     }
     node = new clazz(cfg);
     node.__i__ = inject;
-    delete cfg.__i__;
     for (key in inject) {
+      value = inject[key];
+      node[key] = value;
       p[key] = m[key];
     }
     return node;

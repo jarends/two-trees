@@ -226,9 +226,10 @@ createNode = (clazz, cfg, inject) ->
 
     node       = new clazz cfg
     node.__i__ = inject
-    delete cfg.__i__
 
-    p[key] = m[key] for key of inject
+    for key, value of inject
+        node[key] = value
+        p[key]    = m[key]
     node
 
 

@@ -9,25 +9,17 @@
   CompNode = (function(superClass) {
     extend(CompNode, superClass);
 
-    CompNode.TREE_NAME = 'tree';
-
     function CompNode(cfg) {
       CompNode.__super__.constructor.call(this, cfg);
     }
-
-    CompNode.prototype.getTree = function() {
-      var tree;
-      tree = this[CompNode.TREE_NAME];
-      if (!tree) {
-        throw new Error("Tree not set on property '" + Comp.TREE_NAME + "'.");
-      }
-      return tree;
-    };
 
     CompNode.prototype.register = function(cfg) {
       var binding, bindings, i, len;
       CompNode.__super__.register.call(this, cfg);
       this.paths = [];
+      if (!this.tree) {
+        throw new Error("Tree not injected.");
+      }
       if (bindings = cfg.bindings) {
         for (i = 0, len = bindings.length; i < len; i++) {
           binding = bindings[i];
@@ -41,8 +33,13 @@
       return this.__id__;
     };
 
+    CompNode.prototype.onUnmount = function() {
+      this.unbindAll();
+      return CompNode.__super__.onUnmount.call(this);
+    };
+
     CompNode.prototype.bind = function(obj, name, callback) {
-      return this.paths.push(this.getTree().bind(obj, name, callback || this.update));
+      return this.paths.push(this.tree.bind(obj, name, callback || this.update));
     };
 
     CompNode.prototype.unbind = function(paths) {
@@ -53,25 +50,19 @@
         throw new Error('Paths not bound by this comp.');
       }
       this.paths.splice(index, 1);
-      return this.getTree().unbind(paths);
+      return this.tree.unbind(paths);
     };
 
     CompNode.prototype.unbindAll = function() {
-      var allUnbound, i, len, paths, ref, tree;
-      tree = this.getTree();
+      var allUnbound, i, len, paths, ref;
       allUnbound = true;
       ref = this.paths;
       for (i = 0, len = ref.length; i < len; i++) {
         paths = ref[i];
-        allUnbound = allUnbound && tree.unbind(paths);
+        allUnbound = allUnbound && this.tree.unbind(paths);
       }
       this.paths = [];
       return allUnbound;
-    };
-
-    CompNode.prototype.onUnmount = function() {
-      this.unbindAll();
-      return CompNode.__super__.onUnmount.call(this);
     };
 
     return CompNode;

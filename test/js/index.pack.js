@@ -7,7 +7,7 @@
         index:      0,
         total:      1,
         startIndex: 0,
-        type:       'register::0.878719913917011_1500942330277',
+        type:       'register::0.00937971271217708_1501005978979',
         path:       '/Users/JOA/Projects/workspaces/my/two-trees/test/js/index.js',
         pack:       pack
     };
@@ -656,8 +656,9 @@ module.id = '../src/js/view-tree.js';
     }
     node = new clazz(cfg);
     node.__i__ = inject;
-    delete cfg.__i__;
     for (key in inject) {
+      value = inject[key];
+      node[key] = value;
       p[key] = m[key];
     }
     return node;

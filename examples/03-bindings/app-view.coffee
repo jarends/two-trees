@@ -6,8 +6,7 @@ class AppView extends ViewTree.Node
 
     constructor: (cfg) ->
         super cfg
-        @model = @tree
-        @data  = cfg.model.root
+        @data = @tree.root
 
 
     render: () ->
@@ -18,7 +17,7 @@ class AppView extends ViewTree.Node
             onClick: () =>
                 ++@data.clicks
                 @data.bgGreen = (Math.random() * 100 + 155) >> 0
-                @model.update()
+                @tree.update()
             children:  [
                 tag:      'div'
                 style:    () => "padding: 20px; background-color: rgb(0,#{@data.bgGreen},0);"
@@ -35,15 +34,15 @@ class AppView extends ViewTree.Node
         ,
             tag:      'button'
             disabled:  () => @data.clicks == 0
-            onClick:   () => @model.undo()
+            onClick:   () => @tree.undo()
             bindings: [
                 [@data, 'clicks']
             ]
             children: 'undo'
         ,
             tag:      'button'
-            disabled: () => @data.clicks >= @model.history.length
-            onClick:  () => @model.redo()
+            disabled: () => @data.clicks >= @tree.history.length
+            onClick:  () => @tree.redo()
             bindings: [
                 [@data, 'clicks']
             ]
