@@ -614,10 +614,10 @@ module.id = '../src/js/view-tree.js';
       throwNodeCfgError(cfg);
     }
     tag = cfg.tag;
-    if (isSimple(cfg) || (!tag && isSimple(cfg.text))) {
+    if (isSimple(cfg) || (!tag && (isSimple(cfg.text) || isFunc(cfg.text)))) {
       clazz = ViewTree.DEFAULT_CLASS;
     } else {
-      if (isFunc(tag) && (tag.prototype instanceof Node || tag === Node)) {
+      if (isFunc(tag) && ((tag.prototype instanceof Node) || tag === Node)) {
         clazz = cfg.tag;
       } else {
         if (!isString(tag) || tag === '') {
@@ -665,13 +665,14 @@ module.id = '../src/js/view-tree.js';
   };
 
   createView = function(node, cfg) {
-    var tag;
+    var tag, text;
     if (isNot(cfg)) {
       throwViewCfgError(cfg);
     }
-    if (isSimple(cfg) || (!cfg.tag && (isSimple(cfg.text) || isFunc(cfg.text)))) {
+    text = isFunc(cfg.text) ? cfg.text() : cfg.text;
+    if (isSimple(cfg) || (!cfg.tag && (isSimple(text)))) {
       node.tag = void 0;
-      node.text = (cfg.text || cfg) + '';
+      node.text = (text || cfg) + '';
       node.view = document.createTextNode(node.text);
     } else {
       if (!isString(tag = cfg.tag) || tag === '') {
@@ -731,7 +732,7 @@ module.id = '../src/js/view-tree.js';
     });
     for (j = 0, len = nodes.length; j < len; j++) {
       node = nodes[j];
-      if (!node) {
+      if (!node || !node.view) {
         continue;
       }
       cfg = node.render();
@@ -977,7 +978,7 @@ module.id = '../src/js/view-tree.js';
     var canUpdate, needsUpdate;
     canUpdate = node.canUpdate();
     needsUpdate = node.needsUpdate();
-    if (node === cfg) {
+    if (node === cfg || node.constructor === cfg.tag) {
       if (needsUpdate && canUpdate) {
         updateProperties(node, node.render());
       } else if (needsUpdate && !canUpdate) {
@@ -997,10 +998,10 @@ module.id = '../src/js/view-tree.js';
     var child;
     if (cfg instanceof Node) {
       child = cfg;
-      cfg = child.render();
     } else {
       child = create(cfg, null, cfg.__i__ || node.__i__);
     }
+    cfg = child.render();
     if (!child.view) {
       child.view = createView(child, cfg);
     }
@@ -1027,7 +1028,6 @@ module.id = '../src/js/view-tree.js';
 
   replaceChild = function(child, cfg) {
     var children, i, node, view;
-    consol.log('ViewTree.replaceChild: ', child, cfg);
     node = child.parent;
     children = node.children;
     i = children.indexOf(child);
@@ -1039,6 +1039,7 @@ module.id = '../src/js/view-tree.js';
     } else {
       child = create(cfg, null, cfg.__i__ || node.__i__);
     }
+    cfg = child.render();
     if (!child.view) {
       child.view = createView(child, cfg);
     }
@@ -1057,7 +1058,6 @@ module.id = '../src/js/view-tree.js';
   disposeNode = function(node) {
     var child, j, len, ref;
     if (node.onUnmount() !== true) {
-      console.log('dispose node now: ', node);
       removeEvents(node);
       if (node.children && node.children.length) {
         ref = node.children;

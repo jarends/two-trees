@@ -178,10 +178,9 @@ create = (cfg, root = null, inject = null) ->
     #console.log 'ViewTree.create: ', cfg, root
     throwNodeCfgError cfg if isNot cfg
     tag = cfg.tag
-    if isSimple(cfg) or (not tag and isSimple(cfg.text))
+    if isSimple(cfg) or (not tag and (isSimple(cfg.text) or isFunc(cfg.text)))
         clazz = ViewTree.DEFAULT_CLASS
     else
-        console.log 'create node is func: ', isFunc(tag), tag.prototype instanceof Node, tag == Node
         if isFunc(tag) and ((tag.prototype instanceof Node) or tag == Node)
             clazz = cfg.tag
         else
@@ -244,9 +243,10 @@ createNode = (clazz, cfg, inject) ->
 
 createView = (node, cfg) ->
     throwViewCfgError(cfg) if isNot cfg
-    if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
+    text = if isFunc(cfg.text) then cfg.text() else cfg.text
+    if isSimple(cfg) or (not cfg.tag and (isSimple(text)))
         node.tag  = undefined
-        node.text = (cfg.text or cfg) + ''
+        node.text = (text or cfg) + ''
         node.view = document.createTextNode node.text
     else
         throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
@@ -331,7 +331,7 @@ updateNow = () ->
     (nodes.push(n) if n = nodeMap[id]) for id of dirtyMap
     nodes.sort (a, b) -> a.depth - b.depth
     for node in nodes
-        continue if not node
+        continue if not node or not node.view
         cfg = node.render()
 
         if node.tag != cfg.tag
@@ -613,7 +613,7 @@ updateChildren = (node, cfgs) ->
 change = (node, cfg) ->
     canUpdate   = node.canUpdate()
     needsUpdate = node.needsUpdate()
-    if node == cfg
+    if node == cfg or node.constructor == cfg.tag
         if needsUpdate and canUpdate
             updateProperties node, node.render()
         else if needsUpdate and not canUpdate
@@ -694,7 +694,7 @@ removeChild = (child) ->
 #    000   000  00000000  000        0000000  000   000   0000000  00000000
 
 replaceChild = (child, cfg) ->
-    console.log 'ViewTree.replaceChild: ', child, cfg
+    #console.log 'ViewTree.replaceChild: ', child, cfg
     node     = child.parent
     children = node.children
     i        = children.indexOf child
@@ -738,7 +738,7 @@ disposeNode = (node) ->
     #console.log 'disposeNode: ', node
     if node.onUnmount() != true
 
-        console.log 'dispose node now: ', node
+        #console.log 'dispose node now: ', node
         removeEvents node
 
         if node.children and node.children.length

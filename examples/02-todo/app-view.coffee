@@ -1,28 +1,51 @@
 ViewTree = require('../two-trees').ViewTree
 CompNode = require('../two-trees').CompNode
 
-class TaskView extends CompNode
-    
-    constructor: (cfg) ->
-        @task  = cfg.task
-        delete cfg.task
-        super cfg
-        
+
+class InputView extends CompNode
+
     render: ->
-        
+        tag: 'p'
+        children: [
+            tag:      'input'
+            type:     'checkbox'
+            onChange: (e) => @cfg.allDone e.target.checked
+        ,
+            tag:    'input'
+            type:   'text'
+            onKeyup: (e) =>
+                if e.keyCode == 13 and v = e.target.value
+                    e.target.value = ''
+                    @cfg.addTask v
+        ]
+
+
+class TaskView extends CompNode
+
+    render: ->
         tag: 'li'
         children: [
-                tag:    'input'
-                value:  @task.text
-                onChange: (e) => 
-                    @task.text = e.target.value
-                    console.log @task
-                    @tree.update()
-            , 
-                tag:    'input'
-                type:   'checkbox'
-                value:  @task.done
+            tag:    'input'
+            type:   'text'
+            value:  () => @cfg.task.text
+            onChange: (e) =>
+                @cfg.task.text = e.target.value
+                @tree.update()
+            bindings: [
+                [@cfg.task, 'text']
             ]
+        ,
+            tag:      'input'
+            type:     'checkbox'
+            checked:  ()  => @cfg.task.done
+            onChange: (e) =>
+                @cfg.task.done = e.target.checked
+                @tree.update()
+            bindings: [
+                [@cfg.task, 'done']
+            ]
+        ]
+
 
 class AppView extends ViewTree.Node
 
@@ -32,39 +55,68 @@ class AppView extends ViewTree.Node
         @data = @tree.root
 
         
-    addTask: =>
-        @data.tasks.push text: 'task', done: false
+    addTask: (text) =>
+        @data.numTotal = @data.tasks.push text: text or 'task', done: false
+        console.log '@data.numTotal: ', @data.numTotal
         @tree.update()
-        @update()
+
+
+    allDone: (select) =>
+        t.done = select for t in @data.tasks
+        @data.numDone = @data.tasks.length
+        @tree.update()
+
+
+    taskDone: (select, index) =>
+        t = @data.tasks[index]
+        t.done = select
+        if selected then ++@data.numDone else --@data.numDone
+
 
         
     render: ->
-
         tag: 'div'
         children: [
             tag:      'h1'
-            onClick:  @addTask
             children: [ @data.title + " " + (@data.tasks.length or '') ]
         ,
             tag:      'button'
-            disabled:  @tree.historyIndex < 1
-            onClick:   () => @tree.undo() ; @update()
+            onClick:   () => @tree.undo() ;
             children: 'undo'
         ,
             tag:      'button'
-            disabled: @tree.historyIndex >= @tree.history.length
-            onClick:  () => @tree.redo() ; @update()
+            onClick:  () => @tree.redo() ;
             children: 'redo'
-        , 
-            tag: 'form'
+        ,
+            tag:     InputView
+            addTask: @addTask
+            allDone: @allDone
+        ,
+            tag:      'form'
             children: [
                 tag: 'fieldset'
+                bindings: [
+                    [@data.tasks, '*']
+                ]
                 children: [
                     tag:      'ol'
                     children: () => 
-                        for t in @data.tasks
-                            tag:   TaskView 
+                        for t, i in @data.tasks
+                            tag:   TaskView
                             task:  t
+                            index: i
+                            taskDone: @taskDone
+                ]
+            ]
+        ,
+            tag: 'p'
+            children: [
+                text: () =>
+                    console.log 'update!!!'
+                    'left todos: ' + (@data.numTotal - @data.numDone)
+                bindings: [
+                    [@data, 'numDone']
+                    [@data, 'numTotal']
                 ]
             ]
         ]
