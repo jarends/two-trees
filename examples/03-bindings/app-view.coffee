@@ -11,20 +11,17 @@ class AppView extends ViewTree.Node
         @title = @data.title
 
 
-    onClick: () =>
-        ++@data.clicks
-        @data.bgGreen = (Math.random() * 100 + 155) >> 0
-        @data.title   = @title.replace(' click me!', '') + " clicks: #{@data.clicks}"
-        @model.update()
-
-
     render: () ->
         cfg =
             tag: 'div'
             children: [
                 tag:       'h1'
                 className: 'my-class'
-                onClick: @onClick
+                onClick: () =>
+                    ++@data.clicks
+                    @data.bgGreen = (Math.random() * 100 + 155) >> 0
+                    @data.title   = @title.replace(' click me!', '') + " clicks: #{@data.clicks}"
+                    @model.update()
                 children:  [
                     tag:      'div'
                     style:    () => "padding: 20px; background-color: rgb(0,#{@data.bgGreen},0);"
