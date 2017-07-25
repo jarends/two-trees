@@ -361,7 +361,7 @@
     for (name in propMap) {
       attr = attrs[name];
       value = cfg[name];
-      if (isBool(attr) || isBool(value)) {
+      if (isBool(value) || isNot(value) && attr === true) {
         updateBool(node, value, name);
       } else {
         if (/^on/.test(name)) {
@@ -370,7 +370,11 @@
           if (isFunc(value)) {
             value = value();
           }
-          updateAttr(node, value, name);
+          if (isBool(value)) {
+            updateBool(node, value, name);
+          } else {
+            updateAttr(node, value, name);
+          }
         }
       }
     }

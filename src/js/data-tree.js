@@ -44,7 +44,6 @@
           var callbacks;
           callbacks = _this.bindings[path] || (_this.bindings[path] = []);
           if (callbacks.indexOf(callback) === -1) {
-            console.log('add binding: ', path);
             callbacks.push(callback);
             return paths[path] = callback;
           }
@@ -98,6 +97,7 @@
         this.currentActions.paths = this.currentPaths;
         this.dispatchBindings(this.currentPaths);
       }
+      this.currentPaths = null;
       return false;
     };
 

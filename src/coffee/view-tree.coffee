@@ -298,6 +298,7 @@ remove = (nodeOrRoot) ->
 #     0000000   000        0000000    000   000     000     00000000
 
 update = (node) ->
+    #console.log 'UPDATE NODE: ', node
     id = node?.__id__
     if not id
         throw new Error "DOM ERROR: can't update node. Node doesn't exist. cfg = " + getCfgJson(node?.cfg or null)
@@ -320,6 +321,7 @@ update = (node) ->
 #     0000000   000        0000000    000   000     000     00000000        000   000   0000000   00     00
 
 updateNow = () ->
+    #console.log 'UPDATE NOW: '
     window.cancelAnimationFrame rafTimeout
     dirty = false
     #TODO: sort by depth to update top down
@@ -390,14 +392,20 @@ updateProperties = (node, cfg) ->
     for name of propMap
         attr  = attrs[name]
         value = cfg[name]
-        if isBool(attr) or isBool(value)
+
+        if isBool(value) or isNot(value) and attr == true
             updateBool node, value, name
         else
             if /^on/.test name
                 updateEvent node, value, name
             else
-                value = value() if isFunc value
-                updateAttr node, value, name
+                if isFunc value
+                    value = value()
+
+                if isBool value
+                    updateBool node, value, name
+                else
+                    updateAttr node, value, name
     null
 
 

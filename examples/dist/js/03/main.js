@@ -15,8 +15,9 @@
   ViewTree.DEFAULT_CLASS = CompNode;
 
   model = new DataTree({
-    title: 'hello two-trees!',
-    bgGreen: 255
+    title: 'hello two-trees! click me!',
+    bgGreen: 255,
+    clicks: 0
   });
 
   app = ViewTree.create({

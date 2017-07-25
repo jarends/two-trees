@@ -201,8 +201,9 @@ module.id = 'js/03/main.js';
   ViewTree.DEFAULT_CLASS = CompNode;
 
   model = new DataTree({
-    title: 'hello two-trees!',
-    bgGreen: 255
+    title: 'hello two-trees! click me!',
+    bgGreen: 255,
+    clicks: 0
   });
 
   app = ViewTree.create({
@@ -611,7 +612,7 @@ module.id = '../../src/js/view-tree.js';
     for (name in propMap) {
       attr = attrs[name];
       value = cfg[name];
-      if (isBool(attr) || isBool(value)) {
+      if (isBool(value) || isNot(value) && attr === true) {
         updateBool(node, value, name);
       } else {
         if (/^on/.test(name)) {
@@ -620,7 +621,11 @@ module.id = '../../src/js/view-tree.js';
           if (isFunc(value)) {
             value = value();
           }
-          updateAttr(node, value, name);
+          if (isBool(value)) {
+            updateBool(node, value, name);
+          } else {
+            updateAttr(node, value, name);
+          }
         }
       }
     }
@@ -1024,7 +1029,6 @@ module.id = '../../src/js/data-tree.js';
           var callbacks;
           callbacks = _this.bindings[path] || (_this.bindings[path] = []);
           if (callbacks.indexOf(callback) === -1) {
-            console.log('add binding: ', path);
             callbacks.push(callback);
             return paths[path] = callback;
           }
@@ -1078,6 +1082,7 @@ module.id = '../../src/js/data-tree.js';
         this.currentActions.paths = this.currentPaths;
         this.dispatchBindings(this.currentPaths);
       }
+      this.currentPaths = null;
       return false;
     };
 
@@ -1448,6 +1453,23 @@ module.id = '../../src/js/comp-node.js';
       return tree;
     };
 
+    CompNode.prototype.register = function(cfg) {
+      var binding, bindings, i, len;
+      CompNode.__super__.register.call(this, cfg);
+      this.paths = [];
+      if (bindings = cfg.bindings) {
+        for (i = 0, len = bindings.length; i < len; i++) {
+          binding = bindings[i];
+          if (Array.isArray(binding)) {
+            this.bind(binding[0], binding[1]);
+          } else {
+            this.bind(binding);
+          }
+        }
+      }
+      return this.__id__;
+    };
+
     CompNode.prototype.bind = function(obj, name, callback) {
       return this.paths.push(this.getTree().bind(obj, name, callback || this.update));
     };
@@ -1474,23 +1496,6 @@ module.id = '../../src/js/comp-node.js';
       }
       this.paths = [];
       return allUnbound;
-    };
-
-    CompNode.prototype.register = function(cfg) {
-      var binding, bindings, i, len;
-      CompNode.__super__.register.call(this, cfg);
-      this.paths = [];
-      if (bindings = cfg.bindings) {
-        for (i = 0, len = bindings.length; i < len; i++) {
-          binding = bindings[i];
-          if (Array.isArray(binding)) {
-            this.bind(binding[0], binding[1]);
-          } else {
-            this.bind(binding);
-          }
-        }
-      }
-      return this.__id__;
     };
 
     CompNode.prototype.onUnmount = function() {
@@ -1524,33 +1529,23 @@ module.id = 'js/03/app-view.js';
     extend(AppView, superClass);
 
     function AppView(cfg) {
-      this.redo = bind(this.redo, this);
-      this.undo = bind(this.undo, this);
       this.onClick = bind(this.onClick, this);
       AppView.__super__.constructor.call(this, cfg);
       this.model = cfg.model;
       this.data = cfg.model.root;
       this.title = this.data.title;
-      this.data.title = this.title + " click me!";
     }
 
     AppView.prototype.onClick = function() {
+      ++this.data.clicks;
       this.data.bgGreen = (Math.random() * 100 + 155) >> 0;
-      this.data.title = this.title + (" clicks: " + (this.model.historyIndex + 1));
-      this.model.update();
-      return null;
-    };
-
-    AppView.prototype.undo = function() {
-      return this.model.undo();
-    };
-
-    AppView.prototype.redo = function() {
-      return this.model.redo();
+      this.data.title = this.title.replace(' click me!', '') + (" clicks: " + this.data.clicks);
+      return this.model.update();
     };
 
     AppView.prototype.render = function() {
-      return {
+      var cfg;
+      cfg = {
         tag: 'div',
         children: [
           {
@@ -1575,17 +1570,36 @@ module.id = 'js/03/app-view.js';
             ]
           }, {
             tag: 'button',
-            disabled: this.model.historyIndex < 1 && false,
-            onClick: this.undo,
+            disabled: (function(_this) {
+              return function() {
+                return _this.data.clicks === 0;
+              };
+            })(this),
+            onClick: (function(_this) {
+              return function() {
+                return _this.model.undo();
+              };
+            })(this),
+            bindings: [[this.data, 'clicks']],
             children: 'undo'
           }, {
             tag: 'button',
-            disabled: this.model.historyIndex >= this.model.history.length && false,
-            onClick: this.redo,
+            disabled: (function(_this) {
+              return function() {
+                return _this.data.clicks === _this.model.history.length;
+              };
+            })(this),
+            onClick: (function(_this) {
+              return function() {
+                return _this.model.redo();
+              };
+            })(this),
+            bindings: [[this.data, 'clicks']],
             children: 'redo'
           }
         ]
       };
+      return cfg;
     };
 
     return AppView;

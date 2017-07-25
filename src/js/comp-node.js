@@ -24,6 +24,23 @@
       return tree;
     };
 
+    CompNode.prototype.register = function(cfg) {
+      var binding, bindings, i, len;
+      CompNode.__super__.register.call(this, cfg);
+      this.paths = [];
+      if (bindings = cfg.bindings) {
+        for (i = 0, len = bindings.length; i < len; i++) {
+          binding = bindings[i];
+          if (Array.isArray(binding)) {
+            this.bind(binding[0], binding[1]);
+          } else {
+            this.bind(binding);
+          }
+        }
+      }
+      return this.__id__;
+    };
+
     CompNode.prototype.bind = function(obj, name, callback) {
       return this.paths.push(this.getTree().bind(obj, name, callback || this.update));
     };
@@ -50,23 +67,6 @@
       }
       this.paths = [];
       return allUnbound;
-    };
-
-    CompNode.prototype.register = function(cfg) {
-      var binding, bindings, i, len;
-      CompNode.__super__.register.call(this, cfg);
-      this.paths = [];
-      if (bindings = cfg.bindings) {
-        for (i = 0, len = bindings.length; i < len; i++) {
-          binding = bindings[i];
-          if (Array.isArray(binding)) {
-            this.bind(binding[0], binding[1]);
-          } else {
-            this.bind(binding);
-          }
-        }
-      }
-      return this.__id__;
     };
 
     CompNode.prototype.onUnmount = function() {

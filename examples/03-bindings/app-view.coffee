@@ -6,56 +6,52 @@ class AppView extends ViewTree.Node
 
     constructor: (cfg) ->
         super cfg
-        @model      = cfg.model
-        @data       = cfg.model.root
-        @title      = @data.title
-        @data.title = @title + " click me!"
+        @model = cfg.model
+        @data  = cfg.model.root
+        @title = @data.title
 
 
     onClick: () =>
+        ++@data.clicks
         @data.bgGreen = (Math.random() * 100 + 155) >> 0
-        @data.title   = @title + " clicks: #{@model.historyIndex + 1}"
+        @data.title   = @title.replace(' click me!', '') + " clicks: #{@data.clicks}"
         @model.update()
-        #@update()
-        null
-
-
-    undo: () =>
-        @model.undo()
-        #@update()
-
-
-    redo: () =>
-        @model.redo()
-        #@update()
 
 
     render: () ->
-        tag: 'div'
-        children: [
-            tag:       'h1'
-            className: 'my-class'
-            onClick:   @onClick
-            children:  [
-                tag:      'div'
-                style:    () => "padding: 20px; background-color: rgb(0,#{@data.bgGreen},0);"
-                bindings: [
-                    [@data, 'bgGreen']
-                    [@data, 'title']
+        cfg =
+            tag: 'div'
+            children: [
+                tag:       'h1'
+                className: 'my-class'
+                onClick: @onClick
+                children:  [
+                    tag:      'div'
+                    style:    () => "padding: 20px; background-color: rgb(0,#{@data.bgGreen},0);"
+                    bindings: [
+                        [@data, 'bgGreen']
+                        [@data, 'title']
+                    ]
+                    children: () => @data.title
                 ]
-                children: () => @data.title
+            ,
+                tag:      'button'
+                disabled:  () => @data.clicks == 0
+                onClick:   () => @model.undo()
+                bindings: [
+                    [@data, 'clicks']
+                ]
+                children: 'undo'
+            ,
+                tag:      'button'
+                disabled: () => @data.clicks == @model.history.length
+                onClick:  () => @model.redo()
+                bindings: [
+                    [@data, 'clicks']
+                ]
+                children: 'redo'
             ]
-        ,
-            tag:      'button'
-            disabled:  @model.historyIndex < 1 and false
-            onClick:   @undo
-            children: 'undo'
-        ,
-            tag:      'button'
-            disabled: @model.historyIndex >= @model.history.length and false
-            onClick:  @redo
-            children: 'redo'
-        ]
+        cfg
 
 
 

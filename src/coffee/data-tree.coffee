@@ -41,7 +41,7 @@ class TreeTwo
         @addPaths node, name, null, (path) =>
             callbacks = @bindings[path] or @bindings[path] = []
             if callbacks.indexOf(callback) == -1
-                console.log 'add binding: ', path
+                #console.log 'add binding: ', path
                 callbacks.push callback
                 paths[path] = callback
         #console.log 'bind to: ', paths
@@ -89,6 +89,7 @@ class TreeTwo
             #console.log 'changed paths: ', @currentPaths
             @currentActions.paths = @currentPaths
             @dispatchBindings @currentPaths
+        @currentPaths = null
         false
 
 
@@ -264,6 +265,7 @@ class TreeTwo
 
                 # skip unnecessary creation of simple nodes, because they are unique to their owner
                 else
+                    #console.log 'CHANGE VALUE: ', name, value
                     @addChangeValueAction child, node, name, value
                     child.value = value
         null

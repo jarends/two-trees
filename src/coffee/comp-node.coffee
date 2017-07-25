@@ -22,6 +22,20 @@ class CompNode extends ViewTree.Node
 
 
 
+    register: (cfg) ->
+        super(cfg)
+        @paths = []
+        if bindings = cfg.bindings
+            for binding in bindings
+                if Array.isArray binding
+                    @bind binding[0], binding[1]
+                else
+                    @bind binding
+        @__id__
+
+
+
+
     bind: (obj, name, callback) ->
         @paths.push @getTree().bind(obj, name, callback or @update)
 
@@ -41,24 +55,11 @@ class CompNode extends ViewTree.Node
 
     unbindAll: () ->
         tree = @getTree()
-        allUnbound = true
+        allUnbound  = true
         (allUnbound = allUnbound && tree.unbind paths) for paths in @paths
-        @paths = []
+        @paths      = []
         allUnbound
 
-
-
-
-    register: (cfg) ->
-        super(cfg)
-        @paths = []
-        if bindings = cfg.bindings
-            for binding in bindings
-                if Array.isArray binding
-                    @bind binding[0], binding[1]
-                else
-                    @bind binding
-        @__id__
 
 
 

@@ -11,33 +11,23 @@
     extend(AppView, superClass);
 
     function AppView(cfg) {
-      this.redo = bind(this.redo, this);
-      this.undo = bind(this.undo, this);
       this.onClick = bind(this.onClick, this);
       AppView.__super__.constructor.call(this, cfg);
       this.model = cfg.model;
       this.data = cfg.model.root;
       this.title = this.data.title;
-      this.data.title = this.title + " click me!";
     }
 
     AppView.prototype.onClick = function() {
+      ++this.data.clicks;
       this.data.bgGreen = (Math.random() * 100 + 155) >> 0;
-      this.data.title = this.title + (" clicks: " + (this.model.historyIndex + 1));
-      this.model.update();
-      return null;
-    };
-
-    AppView.prototype.undo = function() {
-      return this.model.undo();
-    };
-
-    AppView.prototype.redo = function() {
-      return this.model.redo();
+      this.data.title = this.title.replace(' click me!', '') + (" clicks: " + this.data.clicks);
+      return this.model.update();
     };
 
     AppView.prototype.render = function() {
-      return {
+      var cfg;
+      cfg = {
         tag: 'div',
         children: [
           {
@@ -62,17 +52,36 @@
             ]
           }, {
             tag: 'button',
-            disabled: this.model.historyIndex < 1 && false,
-            onClick: this.undo,
+            disabled: (function(_this) {
+              return function() {
+                return _this.data.clicks === 0;
+              };
+            })(this),
+            onClick: (function(_this) {
+              return function() {
+                return _this.model.undo();
+              };
+            })(this),
+            bindings: [[this.data, 'clicks']],
             children: 'undo'
           }, {
             tag: 'button',
-            disabled: this.model.historyIndex >= this.model.history.length && false,
-            onClick: this.redo,
+            disabled: (function(_this) {
+              return function() {
+                return _this.data.clicks === _this.model.history.length;
+              };
+            })(this),
+            onClick: (function(_this) {
+              return function() {
+                return _this.model.redo();
+              };
+            })(this),
+            bindings: [[this.data, 'clicks']],
             children: 'redo'
           }
         ]
       };
+      return cfg;
     };
 
     return AppView;

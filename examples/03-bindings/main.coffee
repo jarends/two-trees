@@ -7,14 +7,18 @@ CompNode = trees.CompNode
 
 ViewTree.DEFAULT_CLASS = CompNode
 
+
 model = new DataTree
-    title:   'hello two-trees!'
+    title:   'hello two-trees! click me!'
     bgGreen: 255
+    clicks:  0
+
 
 app = ViewTree.create
     tag:   AppView
     model: model
     __i__:
         tree: model
+
 
 ViewTree.render app, document.querySelector '.app'

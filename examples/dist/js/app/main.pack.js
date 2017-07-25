@@ -588,7 +588,7 @@ module.id = '../../src/js/view-tree.js';
     for (name in propMap) {
       attr = attrs[name];
       value = cfg[name];
-      if (isBool(attr) || isBool(value)) {
+      if (isBool(value) || isNot(value) && attr === true) {
         updateBool(node, value, name);
       } else {
         if (/^on/.test(name)) {
@@ -597,7 +597,11 @@ module.id = '../../src/js/view-tree.js';
           if (isFunc(value)) {
             value = value();
           }
-          updateAttr(node, value, name);
+          if (isBool(value)) {
+            updateBool(node, value, name);
+          } else {
+            updateAttr(node, value, name);
+          }
         }
       }
     }
@@ -1001,7 +1005,6 @@ module.id = '../../src/js/data-tree.js';
           var callbacks;
           callbacks = _this.bindings[path] || (_this.bindings[path] = []);
           if (callbacks.indexOf(callback) === -1) {
-            console.log('add binding: ', path);
             callbacks.push(callback);
             return paths[path] = callback;
           }
@@ -1055,6 +1058,7 @@ module.id = '../../src/js/data-tree.js';
         this.currentActions.paths = this.currentPaths;
         this.dispatchBindings(this.currentPaths);
       }
+      this.currentPaths = null;
       return false;
     };
 
@@ -1425,6 +1429,23 @@ module.id = '../../src/js/comp-node.js';
       return tree;
     };
 
+    CompNode.prototype.register = function(cfg) {
+      var binding, bindings, i, len;
+      CompNode.__super__.register.call(this, cfg);
+      this.paths = [];
+      if (bindings = cfg.bindings) {
+        for (i = 0, len = bindings.length; i < len; i++) {
+          binding = bindings[i];
+          if (Array.isArray(binding)) {
+            this.bind(binding[0], binding[1]);
+          } else {
+            this.bind(binding);
+          }
+        }
+      }
+      return this.__id__;
+    };
+
     CompNode.prototype.bind = function(obj, name, callback) {
       return this.paths.push(this.getTree().bind(obj, name, callback || this.update));
     };
@@ -1451,23 +1472,6 @@ module.id = '../../src/js/comp-node.js';
       }
       this.paths = [];
       return allUnbound;
-    };
-
-    CompNode.prototype.register = function(cfg) {
-      var binding, bindings, i, len;
-      CompNode.__super__.register.call(this, cfg);
-      this.paths = [];
-      if (bindings = cfg.bindings) {
-        for (i = 0, len = bindings.length; i < len; i++) {
-          binding = bindings[i];
-          if (Array.isArray(binding)) {
-            this.bind(binding[0], binding[1]);
-          } else {
-            this.bind(binding);
-          }
-        }
-      }
-      return this.__id__;
     };
 
     CompNode.prototype.onUnmount = function() {
