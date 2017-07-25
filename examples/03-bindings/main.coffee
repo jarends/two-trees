@@ -22,3 +22,7 @@ app = ViewTree.create
 
 
 ViewTree.render app, document.querySelector '.app'
+
+
+window.model = model
+window.data  = model.root

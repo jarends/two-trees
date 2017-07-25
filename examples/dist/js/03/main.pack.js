@@ -216,6 +216,10 @@ module.id = 'js/03/main.js';
 
   ViewTree.render(app, document.querySelector('.app'));
 
+  window.model = model;
+
+  window.data = model.root;
+
 }).call(this);
 
 
@@ -1531,7 +1535,6 @@ module.id = 'js/03/app-view.js';
       AppView.__super__.constructor.call(this, cfg);
       this.model = cfg.model;
       this.data = cfg.model.root;
-      this.title = this.data.title;
     }
 
     AppView.prototype.render = function() {
@@ -1546,7 +1549,6 @@ module.id = 'js/03/app-view.js';
               return function() {
                 ++_this.data.clicks;
                 _this.data.bgGreen = (Math.random() * 100 + 155) >> 0;
-                _this.data.title = _this.title.replace(' click me!', '') + (" clicks: " + _this.data.clicks);
                 return _this.model.update();
               };
             })(this),
@@ -1558,10 +1560,14 @@ module.id = 'js/03/app-view.js';
                     return "padding: 20px; background-color: rgb(0," + _this.data.bgGreen + ",0);";
                   };
                 })(this),
-                bindings: [[this.data, 'bgGreen'], [this.data, 'title']],
+                bindings: [[this.data, 'bgGreen'], [this.data, 'clicks']],
                 children: (function(_this) {
                   return function() {
-                    return _this.data.title;
+                    if (_this.data.clicks) {
+                      return _this.data.title.replace(' click me!', '') + (" clicks: " + _this.data.clicks);
+                    } else {
+                      return _this.data.title;
+                    }
                   };
                 })(this)
               }

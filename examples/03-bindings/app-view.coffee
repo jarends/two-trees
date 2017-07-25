@@ -8,7 +8,6 @@ class AppView extends ViewTree.Node
         super cfg
         @model = cfg.model
         @data  = cfg.model.root
-        @title = @data.title
 
 
     render: () ->
@@ -20,16 +19,19 @@ class AppView extends ViewTree.Node
                 onClick: () =>
                     ++@data.clicks
                     @data.bgGreen = (Math.random() * 100 + 155) >> 0
-                    @data.title   = @title.replace(' click me!', '') + " clicks: #{@data.clicks}"
                     @model.update()
                 children:  [
                     tag:      'div'
                     style:    () => "padding: 20px; background-color: rgb(0,#{@data.bgGreen},0);"
                     bindings: [
                         [@data, 'bgGreen']
-                        [@data, 'title']
+                        [@data, 'clicks']
                     ]
-                    children: () => @data.title
+                    children: () =>
+                        if @data.clicks
+                            @data.title.replace(' click me!', '') + " clicks: #{@data.clicks}"
+                        else
+                            @data.title
                 ]
             ,
                 tag:      'button'

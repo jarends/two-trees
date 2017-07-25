@@ -30,6 +30,10 @@
 
   ViewTree.render(app, document.querySelector('.app'));
 
+  window.model = model;
+
+  window.data = model.root;
+
 }).call(this);
 
 //# sourceMappingURL=main.js.map
