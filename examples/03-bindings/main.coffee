@@ -4,14 +4,16 @@ ViewTree = trees.ViewTree
 DataTree = trees.DataTree
 CompNode = trees.CompNode
 
-
+# set CompNode as default class for each node to enable bindings
 ViewTree.DEFAULT_CLASS = CompNode
 
 
 model = new DataTree
-    title:   'hello two-trees! click me!'
+    title:   'hello two-trees!'
     bgGreen: 255
     clicks:  0
+    obj:
+        test: 'hello'
 
 
 app = ViewTree.create
@@ -24,11 +26,12 @@ app = ViewTree.create
 ViewTree.render app, document.querySelector '.app'
 
 
+# expose model for testing bindings in console
 window.model = model
 window.data  = model.root
 
 
-# in browsers console type:
+# in console type:
 #
 # data.clicks = 1
 # model.update()

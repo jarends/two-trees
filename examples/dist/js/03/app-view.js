@@ -11,13 +11,12 @@
 
     function AppView(cfg) {
       AppView.__super__.constructor.call(this, cfg);
-      this.model = cfg.model;
+      this.model = this.tree;
       this.data = cfg.model.root;
     }
 
     AppView.prototype.render = function() {
-      var cfg;
-      cfg = {
+      return {
         tag: 'div',
         children: [
           {
@@ -42,9 +41,9 @@
                 children: (function(_this) {
                   return function() {
                     if (_this.data.clicks) {
-                      return _this.data.title.replace(' click me!', '') + (" clicks: " + _this.data.clicks);
+                      return _this.data.title + (" clicks: " + _this.data.clicks);
                     } else {
-                      return _this.data.title;
+                      return _this.data.title + ' click me!';
                     }
                   };
                 })(this)
@@ -81,7 +80,6 @@
           }
         ]
       };
-      return cfg;
     };
 
     return AppView;
