@@ -31,6 +31,14 @@ class TaskView extends CompNode
     render: ->
         tag: 'li'
         children: [
+            tag:      'input'
+            type:     'checkbox'
+            checked:  ()  => @cfg.task.done
+            onChange: (e) => @cfg.taskDone e.target.checked, @cfg.index
+            bindings: [
+                [@cfg.task, 'done']
+            ]
+        ,
             tag:    'input'
             type:   'text'
             value:    ()  => @cfg.task.text
@@ -39,14 +47,6 @@ class TaskView extends CompNode
                 @tree.update()
             bindings: [
                 [@cfg.task, 'text']
-            ]
-        ,
-            tag:      'input'
-            type:     'checkbox'
-            checked:  ()  => @cfg.task.done
-            onChange: (e) => @cfg.taskDone e.target.checked, @cfg.index
-            bindings: [
-                [@cfg.task, 'done']
             ]
         ]
 

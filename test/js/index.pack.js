@@ -7,7 +7,7 @@
         index:      0,
         total:      1,
         startIndex: 0,
-        type:       'register::0.028793065059127043_1501067046190',
+        type:       'register::0.4097859324305393_1501067443229',
         path:       '/Users/JOA/Projects/workspaces/my/two-trees/test/js/index.js',
         pack:       pack
     };
