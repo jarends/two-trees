@@ -59,7 +59,6 @@ class AppView extends ViewTree.Node
         
     addTask: (text) =>
         @data.numTotal = @data.tasks.push text: text or 'task', done: false
-        console.log '@data.numTotal: ', @data.numTotal
         @tree.update()
 
 
