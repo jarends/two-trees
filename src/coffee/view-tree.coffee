@@ -423,7 +423,6 @@ updateProperties = (node, cfg) ->
 #    000   000     000        000     000   000  0000000
 
 updateAttr = (node, value, name) ->
-    console.log 'update attr: ', name, value, node.attrs[name], node
     return if node.attrs[name] == value
     if value != null and value != undefined
         node.view.setAttribute name, value
@@ -447,7 +446,7 @@ updateAttr = (node, value, name) ->
 updateBool = (node, value, name) ->
     return if node.attrs[name] == value
     view = node.view
-    if isNot(value) or value == false
+    if isNot(value)
         view.removeAttribute name
         view[name] = false
         delete node.attrs[name]
