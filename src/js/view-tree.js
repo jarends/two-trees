@@ -252,7 +252,7 @@
     text = isFunc(cfg.text) ? cfg.text() : cfg.text;
     if (isSimple(cfg) || (!cfg.tag && (isSimple(text)))) {
       node.tag = void 0;
-      node.text = (text || cfg) + '';
+      node.text = isNot(text) ? cfg : text;
       node.view = document.createTextNode(node.text);
     } else {
       if (!isString(tag = cfg.tag) || tag === '') {

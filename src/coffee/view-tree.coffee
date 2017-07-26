@@ -246,7 +246,7 @@ createView = (node, cfg) ->
     text = if isFunc(cfg.text) then cfg.text() else cfg.text
     if isSimple(cfg) or (not cfg.tag and (isSimple(text)))
         node.tag  = undefined
-        node.text = (text or cfg) + ''
+        node.text = if isNot(text) then cfg else text
         node.view = document.createTextNode node.text
     else
         throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''

@@ -18,9 +18,10 @@ class InputView extends CompNode
                 [@tree.root, 'numTotal']
             ]
         ,
-            tag:    'input'
-            type:   'text'
-            onKeyup: (e) =>
+            tag:         'input'
+            type:        'text'
+            placeholder: 'What needs to be done?'
+            onKeyup:     (e) =>
                 if e.keyCode == 13 and v = e.target.value
                     e.target.value = ''
                     @cfg.addTask v
