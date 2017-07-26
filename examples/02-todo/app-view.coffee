@@ -4,6 +4,7 @@ CompNode = require('../two-trees').CompNode
 
 class InputView extends CompNode
 
+
     render: ->
         tag: 'p'
         children: [
@@ -26,12 +27,13 @@ class InputView extends CompNode
 
 class TaskView extends CompNode
 
+
     render: ->
         tag: 'li'
         children: [
             tag:    'input'
             type:   'text'
-            value:  () => @cfg.task.text
+            value:    ()  => @cfg.task.text
             onChange: (e) =>
                 @cfg.task.text = e.target.value
                 @tree.update()
@@ -74,7 +76,6 @@ class AppView extends ViewTree.Node
         @tree.update()
 
 
-        
     render: ->
         tag: 'div'
         children: [
@@ -95,24 +96,21 @@ class AppView extends ViewTree.Node
         ,
             tag:      'form'
             children: [
-                tag: 'fieldset'
-                children: [
-                    tag:      'ol'
-                    bindings: [
-                        [@data.tasks, '*']
-                    ]
-                    children: () => 
-                        for t, i in @data.tasks
-                            tag:   TaskView
-                            task:  t
-                            index: i
-                            taskDone: @taskDone
+                tag:      'ol'
+                bindings: [
+                    [@data.tasks, '*']
                 ]
+                children: () =>
+                    for t, i in @data.tasks
+                        tag:   TaskView
+                        task:  t
+                        index: i
+                        taskDone: @taskDone
             ]
         ,
             tag: 'p'
             children: [
-                text: () => 'left todos: ' + (@data.numTotal - @data.numDone)
+                text: () => (@data.numTotal - @data.numDone) + ' items left'
                 bindings: [
                     [@data, 'numDone']
                     [@data, 'numTotal']
