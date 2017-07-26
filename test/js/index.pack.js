@@ -736,7 +736,9 @@ module.id = '../src/js/view-tree.js';
         continue;
       }
       cfg = node.render();
-      if (node.tag !== cfg.tag) {
+      if (isNot(node.tag) && isNot(cfg.tag)) {
+        updateText(node, cfg);
+      } else if (node.tag !== cfg.tag) {
         replaceChild(node, cfg);
       } else {
         updateProperties(node, cfg);
@@ -747,7 +749,7 @@ module.id = '../src/js/view-tree.js';
 
   updateText = function(node, cfg) {
     var text;
-    text = (cfg.text || cfg) + '';
+    text = isFunc(cfg.text) ? cfg.text() : isString(cfg) ? cfg : cfg.text;
     if (node.text !== text) {
       node.cfg = cfg;
       node.text = text;

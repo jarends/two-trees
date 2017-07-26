@@ -334,7 +334,9 @@ updateNow = () ->
         continue if not node or not node.view
         cfg = node.render()
 
-        if node.tag != cfg.tag
+        if isNot(node.tag) and isNot(cfg.tag)
+            updateText node, cfg
+        else if node.tag != cfg.tag
             replaceChild node, cfg
         else
             updateProperties node, cfg
@@ -350,8 +352,7 @@ updateNow = () ->
 #     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
 
 updateText = (node, cfg) ->
-    #console.log 'UPDATE TEXT: ', node
-    text = (cfg.text or cfg) + ''
+    text = if isFunc(cfg.text) then cfg.text() else if isString(cfg) then cfg else cfg.text
     if node.text != text
         node.cfg            = cfg
         node.text           = text

@@ -9,7 +9,11 @@ class InputView extends CompNode
         children: [
             tag:      'input'
             type:     'checkbox'
+            checked:  ()  => @tree.root.numDone == @tree.root.numTotal and @tree.root.numTotal > 0
             onChange: (e) => @cfg.allDone e.target.checked
+            bindings: [
+                [@tree.root, 'numDone']
+            ]
         ,
             tag:    'input'
             type:   'text'
@@ -38,9 +42,7 @@ class TaskView extends CompNode
             tag:      'input'
             type:     'checkbox'
             checked:  ()  => @cfg.task.done
-            onChange: (e) =>
-                @cfg.task.done = e.target.checked
-                @tree.update()
+            onChange: (e) => @cfg.taskDone e.target.checked, @cfg.index
             bindings: [
                 [@cfg.task, 'done']
             ]
@@ -63,14 +65,14 @@ class AppView extends ViewTree.Node
 
     allDone: (select) =>
         t.done = select for t in @data.tasks
-        @data.numDone = @data.tasks.length
+        @data.numDone = if select then @data.tasks.length else 0
         @tree.update()
 
 
     taskDone: (select, index) =>
-        t = @data.tasks[index]
-        t.done = select
-        if selected then ++@data.numDone else --@data.numDone
+        @data.tasks[index].done = select
+        if select then ++@data.numDone else --@data.numDone
+        @tree.update()
 
 
         
@@ -95,11 +97,11 @@ class AppView extends ViewTree.Node
             tag:      'form'
             children: [
                 tag: 'fieldset'
-                bindings: [
-                    [@data.tasks, '*']
-                ]
                 children: [
                     tag:      'ol'
+                    bindings: [
+                        [@data.tasks, '*']
+                    ]
                     children: () => 
                         for t, i in @data.tasks
                             tag:   TaskView
@@ -111,9 +113,7 @@ class AppView extends ViewTree.Node
         ,
             tag: 'p'
             children: [
-                text: () =>
-                    console.log 'update!!!'
-                    'left todos: ' + (@data.numTotal - @data.numDone)
+                text: () => 'left todos: ' + (@data.numTotal - @data.numDone)
                 bindings: [
                     [@data, 'numDone']
                     [@data, 'numTotal']
