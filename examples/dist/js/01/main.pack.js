@@ -629,6 +629,7 @@ module.id = '../../src/js/view-tree.js';
   };
 
   updateAttr = function(node, value, name) {
+    console.log('update attr: ', name, value, node.attrs[name], node);
     if (node.attrs[name] === value) {
       return;
     }
@@ -650,8 +651,9 @@ module.id = '../../src/js/view-tree.js';
       return;
     }
     view = node.view;
-    if (isNot(value)) {
+    if (isNot(value) || value === false) {
       view.removeAttribute(name);
+      view[name] = false;
       delete node.attrs[name];
     } else {
       node.attrs[name] = value;

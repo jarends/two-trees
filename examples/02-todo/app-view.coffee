@@ -10,10 +10,13 @@ class InputView extends CompNode
         children: [
             tag:      'input'
             type:     'checkbox'
+            style:    ()  => "display: #{if @tree.root.numTotal > 0 then 'inline-block' else 'none'};"
             checked:  ()  => @tree.root.numDone == @tree.root.numTotal and @tree.root.numTotal > 0
             onChange: (e) => @cfg.allDone e.target.checked
+
             bindings: [
                 [@tree.root, 'numDone']
+                [@tree.root, 'numTotal']
             ]
         ,
             tag:    'input'
