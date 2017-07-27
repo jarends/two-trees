@@ -162,9 +162,8 @@ class TreeTwo
 
             @nodeMap[node.id] = node
             if owner
-                #console.log 'add path: ', name, owner
+                #console.log 'add path: ', name, owner, node
                 @addPaths owner, name, @currentPaths
-                addOwner(node, owner, name)
 
             if value
                 if value.constructor.name == 'Array'
@@ -187,6 +186,8 @@ class TreeTwo
                     node.props = props = {}
                     for key of value
                         props[key] = @createNode node, key, value[key]
+
+        addOwner(node, owner, name) if owner
         node
 
 
@@ -258,10 +259,11 @@ class TreeTwo
 
                 # value changed from simple to complex or reverse or instance changed, so replace the child
                 if type != 'value' or type != child.type
-                    @updateNode child if child.type != 'value'
+                    #@updateNode child if child.type != 'value'
                     removeOwner child, node, name
                     next = @createNode node, name, value
                     @addSwapAction child, node, name, next
+                    #console.log 'change node: ', name, child, next, node
 
                 # skip unnecessary creation of simple nodes, because they are unique to their owner
                 else

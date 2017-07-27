@@ -1,13 +1,19 @@
-ViewTree = require('../two-trees').ViewTree
 CompNode = require('../two-trees').CompNode
 
 
 class InputView extends CompNode
 
-
     render: ->
         tag: 'p'
         children: [
+            tag:         'input'
+            type:        'text'
+            placeholder: 'What needs to be done?'
+            onKeyup:     (e) =>
+                if e.keyCode == 13 and v = e.target.value
+                    e.target.value = ''
+                    @cfg.addTask v
+        ,
             tag:      'input'
             type:     'checkbox'
             style:    ()  => "display: #{if @tree.root.numTotal > 0 then 'inline-block' else 'none'};"
@@ -17,19 +23,10 @@ class InputView extends CompNode
                 [@tree.root, 'numDone']
                 [@tree.root, 'numTotal']
             ]
-        ,
-            tag:         'input'
-            type:        'text'
-            placeholder: 'What needs to be done?'
-            onKeyup:     (e) =>
-                if e.keyCode == 13 and v = e.target.value
-                    e.target.value = ''
-                    @cfg.addTask v
         ]
 
 
 class TaskView extends CompNode
-
 
     render: ->
         tag: 'li'
@@ -42,20 +39,45 @@ class TaskView extends CompNode
                 [@cfg.task, 'done']
             ]
         ,
-            tag:    'input'
-            type:   'text'
-            value:    ()  => @cfg.task.text
+            tag:        'input'
+            type:       'text'
+            readonly:   !@editable
+            value:      ()  => @cfg.task.text
+            onDblclick: ()  =>
+                @editable = true
+                @update()
             onChange: (e) =>
                 @cfg.task.text = e.target.value
-                @tree.update()
+                @tree.update @cfg.task
+
+            onBlur: () =>
+                if @editable
+                    @editable = false
+                    @update()
             bindings: [
                 [@cfg.task, 'text']
             ]
+        ,
+            tag: 'button'
+            children: 'x'
+            onClick: () => @cfg.removeTask @cfg.index
         ]
 
 
-class AppView extends ViewTree.Node
+class FilterButton extends CompNode
 
+    constructor: (cfg) ->
+        super cfg
+        @bind @cfg.data, 'filter'
+
+    render: () ->
+        tag:       'button'
+        className: () => if @cfg.data.filter == @cfg.name then 'active' else null
+        children:  @cfg.name
+        onClick:   () => @cfg.setFilter @cfg.name
+
+
+class AppView extends CompNode
 
     constructor: (cfg) ->
         super cfg
@@ -79,39 +101,61 @@ class AppView extends ViewTree.Node
         @tree.update()
 
 
+    setFilter: (name) =>
+        @data.filter = name
+        @tree.update()
+
+
+    removeTask: (index) =>
+        --@data.numTotal
+        --@data.numDone if @data.tasks[index].done
+        @data.tasks.splice index, 1
+        @tree.update()
+
+
+    clearCompleted: () =>
+        tasks = @data.tasks.slice()
+        index = 0
+        for t in tasks
+            if t.done then @data.tasks.splice(index, 1) else ++index
+        @data.numTotal = index
+        @data.numDone  = 0
+        @tree.update()
+
+
     render: ->
-        tag: 'div'
+        tag:      'div'
+        style:    'padding: 20px;'
         children: [
-            tag:      'h1'
-            children: [ @data.title + " " + (@data.tasks.length or '') ]
+            tag: 'h1',     children: 'todo ' + (@data.tasks.length or '')
         ,
-            tag:      'button'
-            onClick:   () => @tree.undo() ;
-            children: 'undo'
+            tag: 'button', children: 'undo', onClick: () => @tree.undo()
         ,
-            tag:      'button'
-            onClick:  () => @tree.redo() ;
-            children: 'redo'
+            tag: 'button', children: 'redo', onClick: () => @tree.redo()
         ,
-            tag:     InputView
-            addTask: @addTask
-            allDone: @allDone
+            tag: InputView, addTask: @addTask, allDone: @allDone
         ,
-            tag:      'form'
-            children: [
-                tag:      'ol'
-                bindings: [
-                    [@data.tasks, '*']
-                ]
-                children: () =>
-                    for t, i in @data.tasks
-                        tag:   TaskView
-                        task:  t
-                        index: i
-                        taskDone: @taskDone
+            tag:      'ol'
+            bindings: [
+                [@data,       'filter']
+                [@data,       'numDone']
+                [@data,       'numTotal']
+                [@data.tasks, '*']
             ]
+            children: () =>
+                f = @data.filter
+                c = []
+                for t, i in @data.tasks
+                    if f == 'all' or (t.done and f == 'done') or (not t.done and f == 'undone')
+                        c.push
+                            tag:        TaskView
+                            task:       t
+                            index:      i
+                            taskDone:   @taskDone
+                            removeTask: @removeTask
+                c
         ,
-            tag: 'p'
+            tag:      'p'
             children: [
                 text: () => (@data.numTotal - @data.numDone) + ' items left'
                 bindings: [
@@ -119,9 +163,26 @@ class AppView extends ViewTree.Node
                     [@data, 'numTotal']
                 ]
             ]
+        ,
+            tag:      'p'
+            children: [
+                'show: '
+            ,
+                tag: FilterButton, data: @data, setFilter: @setFilter, name: 'all'
+            ,
+                tag: FilterButton, data: @data, setFilter: @setFilter, name: 'done'
+            ,
+                tag: FilterButton, data: @data, setFilter: @setFilter, name: 'undone'
+            ]
+        ,
+            tag:      'button'
+            style:    () => "display: #{if @tree.root.numDone > 0 then 'inline-block' else 'none'};"
+            children: 'clear completed'
+            onClick:  () => @clearCompleted()
+            bindings: [
+                [@data, 'numDone']
+            ]
         ]
-
-
 
 
 module.exports = AppView

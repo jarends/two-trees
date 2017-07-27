@@ -180,7 +180,6 @@
         this.nodeMap[node.id] = node;
         if (owner) {
           this.addPaths(owner, name, this.currentPaths);
-          addOwner(node, owner, name);
         }
         if (value) {
           if (value.constructor.name === 'Array') {
@@ -206,6 +205,9 @@
             }
           }
         }
+      }
+      if (owner) {
+        addOwner(node, owner, name);
       }
       return node;
     };
@@ -274,9 +276,6 @@
             }
           }
           if (type !== 'value' || type !== child.type) {
-            if (child.type !== 'value') {
-              this.updateNode(child);
-            }
             removeOwner(child, node, name);
             next = this.createNode(node, name, value);
             this.addSwapAction(child, node, name, next);

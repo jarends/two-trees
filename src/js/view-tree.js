@@ -127,7 +127,8 @@
       return true;
     };
 
-    Node.prototype.canUpdate = function() {
+    Node.prototype.canUpdate = function(cfg1) {
+      this.cfg = cfg1;
       return true;
     };
 
@@ -324,6 +325,7 @@
         updateProperties(node, cfg);
       }
     }
+    dirtyMap = {};
     return null;
   };
 
@@ -559,7 +561,7 @@
 
   change = function(node, cfg) {
     var canUpdate, needsUpdate;
-    canUpdate = node.canUpdate();
+    canUpdate = node.canUpdate(cfg);
     needsUpdate = node.needsUpdate();
     if (node === cfg || node.constructor === cfg.tag) {
       if (needsUpdate && canUpdate) {

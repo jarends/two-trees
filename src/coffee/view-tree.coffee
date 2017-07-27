@@ -105,7 +105,7 @@ class Node
 
 
     needsUpdate: () -> true
-    canUpdate:   () -> true
+    canUpdate:   (@cfg) -> true
     update:      () => update @
     render:      () -> @cfg
 
@@ -300,7 +300,7 @@ remove = (nodeOrRoot) ->
 #     0000000   000        0000000    000   000     000     00000000
 
 update = (node) ->
-    #console.log 'UPDATE NODE: ', node
+    #console.log 'UPDATE: ', node.__id__
     id = node?.__id__
     if not id
         throw new Error "DOM ERROR: can't update node. Node doesn't exist. cfg = " + getCfgJson(node?.cfg or null)
@@ -340,6 +340,7 @@ updateNow = () ->
             replaceChild node, cfg
         else
             updateProperties node, cfg
+    dirtyMap = {}
     null
 
 
@@ -369,7 +370,7 @@ updateText = (node, cfg) ->
 #     0000000   000        0000000    000   000     000     00000000        000        000   000   0000000   000        0000000 
 
 updateProperties = (node, cfg) ->
-    #console.log 'UPDATE PROPS: ', node
+    #console.log 'UPDATE PROPS: ', node.__id__, node.view
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
@@ -423,6 +424,7 @@ updateProperties = (node, cfg) ->
 #    000   000     000        000     000   000  0000000
 
 updateAttr = (node, value, name) ->
+    #console.log 'updateAttr: ', name, value, node.attrs[name], node.__id__
     return if node.attrs[name] == value
     if value != null and value != undefined
         node.view.setAttribute name, value
@@ -444,6 +446,7 @@ updateAttr = (node, value, name) ->
 #    0000000     0000000    0000000   0000000
 
 updateBool = (node, value, name) ->
+    #console.log 'updateBool: ', name, value, node.attrs[name], node.__id__
     return if node.attrs[name] == value
     view = node.view
     if isNot(value)
@@ -611,7 +614,7 @@ updateChildren = (node, cfgs) ->
 #     0000000  000   000  000   000  000   000   0000000   00000000
 
 change = (node, cfg) ->
-    canUpdate   = node.canUpdate()
+    canUpdate   = node.canUpdate(cfg)
     needsUpdate = node.needsUpdate()
     if node == cfg or node.constructor == cfg.tag
         if needsUpdate and canUpdate

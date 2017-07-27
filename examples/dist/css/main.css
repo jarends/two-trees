@@ -17,4 +17,13 @@ h1 {
   -webkit-tap-highlight-color: transparent;
   -webkit-tap-highlight-color: transparent; }
 
+button {
+  border: 1px solid grey;
+  border-radius: 3px;
+  background: white;
+  outline: none; }
+
+button.active, button:active {
+  background: orange; }
+
 /*# sourceMappingURL=main.css.map */

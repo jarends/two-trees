@@ -547,7 +547,8 @@ module.id = '../src/js/view-tree.js';
       return true;
     };
 
-    Node.prototype.canUpdate = function() {
+    Node.prototype.canUpdate = function(cfg1) {
+      this.cfg = cfg1;
       return true;
     };
 
@@ -744,6 +745,7 @@ module.id = '../src/js/view-tree.js';
         updateProperties(node, cfg);
       }
     }
+    dirtyMap = {};
     return null;
   };
 
@@ -979,7 +981,7 @@ module.id = '../src/js/view-tree.js';
 
   change = function(node, cfg) {
     var canUpdate, needsUpdate;
-    canUpdate = node.canUpdate();
+    canUpdate = node.canUpdate(cfg);
     needsUpdate = node.needsUpdate();
     if (node === cfg || node.constructor === cfg.tag) {
       if (needsUpdate && canUpdate) {
