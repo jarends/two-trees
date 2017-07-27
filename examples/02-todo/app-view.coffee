@@ -33,14 +33,17 @@ class TaskView extends CompNode
         children: [
             tag:      'input'
             type:     'checkbox'
-            checked:  ()  => @cfg.task.done
-            onChange: (e) => @cfg.taskDone e.target.checked, @cfg.index
+            checked:  ()  =>
+                #console.log 'update task checked: ', @cfg.task.text, @cfg.task.done
+                @cfg.task.done
+            onChange: (e) => @cfg.taskDone e.target.checked or false, @cfg.index
             bindings: [
                 [@cfg.task, 'done']
             ]
         ,
             tag:        'input'
             type:       'text'
+            tabIndex:   0
             readonly:   !@editable
             value:      ()  => @cfg.task.text
             onDblclick: ()  =>
@@ -48,8 +51,9 @@ class TaskView extends CompNode
                 @update()
             onChange: (e) =>
                 @cfg.task.text = e.target.value
+                @editable = false
                 @tree.update @cfg.task
-
+                @update()
             onBlur: () =>
                 if @editable
                     @editable = false
@@ -158,7 +162,7 @@ class AppView extends CompNode
             tag:      'p'
             children: [
                 text: () => (@data.numTotal - @data.numDone) + ' items left'
-                bindings: [
+                bind: [
                     [@data, 'numDone']
                     [@data, 'numTotal']
                 ]
@@ -183,6 +187,20 @@ class AppView extends CompNode
                 [@data, 'numDone']
             ]
         ]
+
+
+class MyButton extends CompNode
+
+    render: () ->
+        tag:      'button'
+        style:    () => "display: #{if @tree.root.numDone > 0 then 'inline-block' else 'none'};"
+        children: 'clear completed'
+        onClick:  () => @clearCompleted()
+        bindings: [
+            [@data, 'numDone']
+        ]
+
+
 
 
 module.exports = AppView

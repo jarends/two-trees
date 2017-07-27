@@ -134,6 +134,7 @@ tagMap     = {}
 rootMap    = {}
 nodeMap    = {}
 dirtyMap   = {}
+cleanMap   = {}
 dirty      = false
 rafTimeout = null
 
@@ -175,7 +176,7 @@ unmap = (tag) ->
 #     0000000  000   000  00000000  000   000     000     00000000
 
 create = (cfg, root = null, inject = null) ->
-    #console.log 'ViewTree.create: ', cfg, root
+    #console.log 'ViewTree.create: ', cfg
     throwNodeCfgError cfg if isNot cfg
     tag = cfg.tag
     if isSimple(cfg) or (not tag and (isSimple(cfg.text) or isFunc(cfg.text)))
@@ -271,6 +272,9 @@ render = (node, root) ->
 
     root.appendChild(node.view)
 
+    node.parent = null
+    node.depth  = 0
+
     if isSimple cfg
         updateText node, cfg
     else
@@ -325,18 +329,22 @@ update = (node) ->
 updateNow = () ->
     #console.log 'UPDATE NOW: '
     window.cancelAnimationFrame rafTimeout
-    dirty = false
+    dirty    = false
+    cleanMap = {}
+    nodes    = []
     #TODO: sort by depth to update top down
-    nodes = []
     (nodes.push(n) if n = nodeMap[id]) for id of dirtyMap
     nodes.sort (a, b) -> a.depth - b.depth
     for node in nodes
-        continue if not node or not node.view
+        continue if not node.view or not nodeMap[node.__id__] or cleanMap[node.__id__]
         cfg = node.render()
+
+        #if node.constructor.name == 'Check'
+        #console.log 'update node now: ', node.constructor.name, node.depth, node.__id__, node.view, cleanMap
 
         if isNot(node.tag) and isNot(cfg.tag)
             updateText node, cfg
-        else if node.tag != cfg.tag
+        else if not (node.tag == cfg.tag or node.constructor == cfg.tag)
             replaceChild node, cfg
         else
             updateProperties node, cfg
@@ -353,6 +361,7 @@ updateNow = () ->
 #     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
 
 updateText = (node, cfg) ->
+    cleanMap[node.__id__] = true
     text = if isFunc(cfg.text) then cfg.text() else if isString(cfg) then cfg else cfg.text
     if node.text != text
         node.cfg            = cfg
@@ -370,6 +379,7 @@ updateText = (node, cfg) ->
 #     0000000   000        0000000    000   000     000     00000000        000        000   000   0000000   000        0000000 
 
 updateProperties = (node, cfg) ->
+    cleanMap[node.__id__] = true
     #console.log 'UPDATE PROPS: ', node.__id__, node.view
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
@@ -397,7 +407,7 @@ updateProperties = (node, cfg) ->
         attr  = attrs[name]
         value = cfg[name]
 
-        if isBool(value) or isNot(value) and attr == true
+        if isBool(value) or (isNot(value) and isBool(attr))
             updateBool node, value, name
         else
             if /^on/.test name
@@ -425,14 +435,16 @@ updateProperties = (node, cfg) ->
 
 updateAttr = (node, value, name) ->
     #console.log 'updateAttr: ', name, value, node.attrs[name], node.__id__
+    node.attrs[name] = node.view.getAttribute name
     return if node.attrs[name] == value
+    view = node.view
     if value != null and value != undefined
-        node.view.setAttribute name, value
-        node.view[name]  = value
+        view.setAttribute name, value
+        view[name]       = value
         node.attrs[name] = value
     else
-        node.view.removeAttribute name
-        delete node.view[name]
+        view.removeAttribute name
+        delete view[name]
         delete node.attrs[name]
     null
 
@@ -446,21 +458,17 @@ updateAttr = (node, value, name) ->
 #    0000000     0000000    0000000   0000000
 
 updateBool = (node, value, name) ->
-    #console.log 'updateBool: ', name, value, node.attrs[name], node.__id__
+    node.attrs[name] = node.view[name]
     return if node.attrs[name] == value
     view = node.view
-    if isNot(value)
+    if isNot(value) or value == false
         view.removeAttribute name
         view[name] = false
         delete node.attrs[name]
     else
-        node.attrs[name] = value
-        if value
-            view.setAttribute name, ''
-            view[name] = true
-        else
-            view.removeAttribute name
-            view[name] = false
+        view.setAttribute name, ''
+        view[name]       = true
+        node.attrs[name] = true
     null
 
 
@@ -475,6 +483,7 @@ updateBool = (node, value, name) ->
 updateClass = (node, value) ->
     value = value() if isFunc value
 
+    node.attrs.className = node.view.className
     return if node.attrs.className == value
     if value
         node.view.className  = value
@@ -497,6 +506,8 @@ updateStyle = (node, style) ->
     view  = node.view
     attrs = node.attrs
     sobj  = attrs.style
+
+    return if not view
 
     style = style() if isFunc style
 
@@ -657,7 +668,7 @@ addChild = (node, cfg) ->
     node.children.push child
     node.view.appendChild child.view
     child.parent = node
-
+    child.depth  = node.depth + 1
 
     if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
         updateText child, cfg
@@ -717,6 +728,7 @@ replaceChild = (child, cfg) ->
 
     children[i]  = child
     child.parent = node
+    child.depth  = node.depth + 1
     node.view.replaceChild child.view, view
 
     if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
@@ -752,6 +764,7 @@ disposeNode = (node) ->
         delete nodeMap[node.__id__]
 
     node.parent = null
+    node.depth  = undefined
     null
 
 
