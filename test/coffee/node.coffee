@@ -223,3 +223,141 @@ describe 'new Node', () ->
             disabled: undefined
         expectValidTagNode node = new Node(cfg), Node, 'div'
         expectBoolAttr node, 'disabled', undefined
+
+
+
+
+describe 'node instance', () ->
+
+    describe 'appendTo', () ->
+
+        it 'should append the nodes view to the dom', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            node.appendTo parent
+            expect(parent.childNodes[0]).to.equal node.view
+            expect(parent.childNodes.length).to.equal 1
+
+        it 'should throw an error if the dom is controlled by a node', () ->
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            expect(() -> node.appendTo parent.view).to.throw()
+
+        it 'should not throw an error if Node.CHECK_DOM = false', () ->
+            Node.CHECK_DOM = false
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            expect(() -> node.appendTo parent.view).to.not.throw()
+            Node.CHECK_DOM = true
+
+
+    describe 'behind', () ->
+
+        it 'should append the nodes view behind the dom', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            parent.appendChild getTag 'div'
+            parent.appendChild prev = getTag 'div'
+            parent.appendChild getTag 'div'
+            node.behind prev
+            expect(parent.childNodes[2]).to.equal node.view
+            expect(parent.childNodes.length).to.equal 4
+
+
+        it 'should append the nodes view behind the dom if the dom is the last child', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            parent.appendChild getTag 'div'
+            parent.appendChild getTag 'div'
+            parent.appendChild prev = getTag 'div'
+            node.behind prev
+            expect(parent.childNodes[3]).to.equal node.view
+            expect(parent.childNodes.length).to.equal 4
+
+
+        it 'should throw an error if the doms parent is controlled by a node', () ->
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild prev = getTag 'div'
+            expect(() -> node.behind prev).to.throw()
+
+
+        it 'should not throw an error if Node.CHECK_DOM = false', () ->
+            Node.CHECK_DOM = false
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild prev = getTag 'div'
+            expect(() -> node.behind prev).to.not.throw()
+            Node.CHECK_DOM = true
+
+
+    describe 'before', () ->
+
+        it 'should prepand the nodes view before the dom', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            parent.appendChild getTag 'div'
+            parent.appendChild next = getTag 'div'
+            node.before next
+            expect(parent.childNodes[1]).to.equal node.view
+            expect(parent.childNodes.length).to.equal 3
+
+
+        it 'should throw an error if the doms parent is controlled by a node', () ->
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild next = getTag 'div'
+            expect(() -> node.before next).to.throw()
+
+
+        it 'should not throw an error if Node.CHECK_DOM = false', () ->
+            Node.CHECK_DOM = false
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild next = getTag 'div'
+            expect(() -> node.before next).to.not.throw()
+            Node.CHECK_DOM = true
+
+
+    describe 'replace', () ->
+
+        it 'should replace the dom with the nodes view', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            parent.appendChild old = getTag 'div'
+            node.replace old
+            expect(parent.childNodes[0]).to.equal node.view
+            expect(parent.childNodes.length).to.equal 1
+
+
+        it 'should throw an error if the doms parent is controlled by a node', () ->
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild old = getTag 'div'
+            expect(() -> node.replace old).to.throw()
+
+
+        it 'should not throw an error for the doms parent if Node.CHECK_DOM = false', () ->
+            Node.CHECK_DOM = false
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild old = getTag 'div'
+            expect(() -> node.replace old).to.not.throw()
+            Node.CHECK_DOM = true
+
+
+        it 'should throw an error if the dom is controlled by a node', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            parent.appendChild old = (new Node tag:'div').view
+            expect(() -> node.replace old).to.throw()
+
+        it 'should not throw an error for the dom if Node.CHECK_DOM = false', () ->
+            Node.CHECK_DOM = false
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            parent.appendChild old = (new Node tag:'div').view
+            expect(() -> node.replace old).to.not.throw()
+            Node.CHECK_DOM = true
+
+

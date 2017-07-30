@@ -496,6 +496,214 @@
     });
   });
 
+  describe('node instance', function() {
+    describe('appendTo', function() {
+      it('should append the nodes view to the dom', function() {
+        var node, parent;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        node.appendTo(parent);
+        expect(parent.childNodes[0]).to.equal(node.view);
+        return expect(parent.childNodes.length).to.equal(1);
+      });
+      it('should throw an error if the dom is controlled by a node', function() {
+        var node, parent;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        return expect(function() {
+          return node.appendTo(parent.view);
+        }).to["throw"]();
+      });
+      return it('should not throw an error if Node.CHECK_DOM = false', function() {
+        var node, parent;
+        Node.CHECK_DOM = false;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        expect(function() {
+          return node.appendTo(parent.view);
+        }).to.not["throw"]();
+        return Node.CHECK_DOM = true;
+      });
+    });
+    describe('behind', function() {
+      it('should append the nodes view behind the dom', function() {
+        var node, parent, prev;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        parent.appendChild(getTag('div'));
+        parent.appendChild(prev = getTag('div'));
+        parent.appendChild(getTag('div'));
+        node.behind(prev);
+        expect(parent.childNodes[2]).to.equal(node.view);
+        return expect(parent.childNodes.length).to.equal(4);
+      });
+      it('should append the nodes view behind the dom if the dom is the last child', function() {
+        var node, parent, prev;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        parent.appendChild(getTag('div'));
+        parent.appendChild(getTag('div'));
+        parent.appendChild(prev = getTag('div'));
+        node.behind(prev);
+        expect(parent.childNodes[3]).to.equal(node.view);
+        return expect(parent.childNodes.length).to.equal(4);
+      });
+      it('should throw an error if the doms parent is controlled by a node', function() {
+        var node, parent, prev;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        parent.view.appendChild(prev = getTag('div'));
+        return expect(function() {
+          return node.behind(prev);
+        }).to["throw"]();
+      });
+      return it('should not throw an error if Node.CHECK_DOM = false', function() {
+        var node, parent, prev;
+        Node.CHECK_DOM = false;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        parent.view.appendChild(prev = getTag('div'));
+        expect(function() {
+          return node.behind(prev);
+        }).to.not["throw"]();
+        return Node.CHECK_DOM = true;
+      });
+    });
+    describe('before', function() {
+      it('should prepand the nodes view before the dom', function() {
+        var next, node, parent;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        parent.appendChild(getTag('div'));
+        parent.appendChild(next = getTag('div'));
+        node.before(next);
+        expect(parent.childNodes[1]).to.equal(node.view);
+        return expect(parent.childNodes.length).to.equal(3);
+      });
+      it('should throw an error if the doms parent is controlled by a node', function() {
+        var next, node, parent;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        parent.view.appendChild(next = getTag('div'));
+        return expect(function() {
+          return node.before(next);
+        }).to["throw"]();
+      });
+      return it('should not throw an error if Node.CHECK_DOM = false', function() {
+        var next, node, parent;
+        Node.CHECK_DOM = false;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        parent.view.appendChild(next = getTag('div'));
+        expect(function() {
+          return node.before(next);
+        }).to.not["throw"]();
+        return Node.CHECK_DOM = true;
+      });
+    });
+    return describe('replace', function() {
+      it('should replace the dom with the nodes view', function() {
+        var node, old, parent;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        parent.appendChild(old = getTag('div'));
+        node.replace(old);
+        expect(parent.childNodes[0]).to.equal(node.view);
+        return expect(parent.childNodes.length).to.equal(1);
+      });
+      it('should throw an error if the doms parent is controlled by a node', function() {
+        var node, old, parent;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        parent.view.appendChild(old = getTag('div'));
+        return expect(function() {
+          return node.replace(old);
+        }).to["throw"]();
+      });
+      it('should not throw an error for the doms parent if Node.CHECK_DOM = false', function() {
+        var node, old, parent;
+        Node.CHECK_DOM = false;
+        parent = new Node({
+          tag: 'div'
+        });
+        node = new Node({
+          tag: 'div'
+        });
+        parent.view.appendChild(old = getTag('div'));
+        expect(function() {
+          return node.replace(old);
+        }).to.not["throw"]();
+        return Node.CHECK_DOM = true;
+      });
+      it('should throw an error if the dom is controlled by a node', function() {
+        var node, old, parent;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        parent.appendChild(old = (new Node({
+          tag: 'div'
+        })).view);
+        return expect(function() {
+          return node.replace(old);
+        }).to["throw"]();
+      });
+      return it('should not throw an error for the dom if Node.CHECK_DOM = false', function() {
+        var node, old, parent;
+        Node.CHECK_DOM = false;
+        parent = getTag('div');
+        node = new Node({
+          tag: 'div'
+        });
+        parent.appendChild(old = (new Node({
+          tag: 'div'
+        })).view);
+        expect(function() {
+          return node.replace(old);
+        }).to.not["throw"]();
+        return Node.CHECK_DOM = true;
+      });
+    });
+  });
+
 }).call(this);
 
 //# sourceMappingURL=node.js.map

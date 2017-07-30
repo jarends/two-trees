@@ -234,6 +234,8 @@ init = (node) ->
                     if extendsNode tag
                         throw new Error "A tag must be a string or a HTMLElement, you specified a Node class."
                     throw new Error "A tag must be a string or a HTMLElement."
+
+    domList.push node.view if Node.CHECK_DOM
     node
 
 
@@ -757,21 +759,55 @@ disposeNode = (node) ->
     null
 
 
+
+
+
+
+
+
 append = (node, dom) ->
     checkDom dom if Node.CHECK_DOM
     dom.appendChild node.view
 
 
-behind        = (node, dom) ->
-before        = (node, dom) ->
-replace       = (node, dom) ->
-remove        = (node) ->
-addChild      = (node, child) ->
-addChildAt    = (node, child, index) ->
-removeChild   = (node, index) ->
+behind = (node, dom) ->
+    parent = dom.parentNode
+    next   = dom.nextSibling
+    checkDom parent if Node.CHECK_DOM
+    if next
+        parent.insertBefore node.view, next
+    else
+        parent.appendChild node.view
+
+
+before = (node, dom) ->
+    parent = dom.parentNode
+    checkDom parent if Node.CHECK_DOM
+    parent.insertBefore node.view, dom
+
+
+replace = (node, dom) ->
+    parent = dom.parentNode
+    if Node.CHECK_DOM
+        checkDom parent
+        checkDom dom
+    parent.replaceChild node.view, dom
+
+
+remove = (node) ->
+    parent = node.view.parentNode
+    checkDom parent if Node.CHECK_DOM
+    parent.removeChild node.view
+
+
+
+
+addChild = (node, child) ->
+addChildAt = (node, child, index) ->
+removeChild = (node, index) ->
 removeChildAt = (node, index) ->
-disposeNode   = () ->
-clone         = () ->
+disposeNode = () ->
+clone = () ->
 
 
 

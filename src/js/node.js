@@ -296,6 +296,9 @@
             throw new Error("A tag must be a string or a HTMLElement.");
         }
     }
+    if (Node.CHECK_DOM) {
+      domList.push(node.view);
+    }
     return node;
   };
 
@@ -743,13 +746,47 @@
     return dom.appendChild(node.view);
   };
 
-  behind = function(node, dom) {};
+  behind = function(node, dom) {
+    var next, parent;
+    parent = dom.parentNode;
+    next = dom.nextSibling;
+    if (Node.CHECK_DOM) {
+      checkDom(parent);
+    }
+    if (next) {
+      return parent.insertBefore(node.view, next);
+    } else {
+      return parent.appendChild(node.view);
+    }
+  };
 
-  before = function(node, dom) {};
+  before = function(node, dom) {
+    var parent;
+    parent = dom.parentNode;
+    if (Node.CHECK_DOM) {
+      checkDom(parent);
+    }
+    return parent.insertBefore(node.view, dom);
+  };
 
-  replace = function(node, dom) {};
+  replace = function(node, dom) {
+    var parent;
+    parent = dom.parentNode;
+    if (Node.CHECK_DOM) {
+      checkDom(parent);
+      checkDom(dom);
+    }
+    return parent.replaceChild(node.view, dom);
+  };
 
-  remove = function(node) {};
+  remove = function(node) {
+    var parent;
+    parent = node.view.parentNode;
+    if (Node.CHECK_DOM) {
+      checkDom(parent);
+    }
+    return parent.removeChild(node.view);
+  };
 
   addChild = function(node, child) {};
 
