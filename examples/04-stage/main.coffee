@@ -15,19 +15,15 @@ model = new DataTree
     numTotal: 0
     filter:   'all'
 
-###
-app = new AppView
-    tag: document.querySelector '.app'
-    inject:
-        model: model
-###
 
-
-new Node
+app = new Node
     tag:'div'
+    title: 'my title'
+    disabled: false
 
-Node.create
-    tag:'div'
+app.appendTo document.querySelector '.app'
+
+console.log node
 
 
 #console.log new Node tag: document.querySelector '.app'
@@ -35,9 +31,6 @@ Node.create
 #console.log new Node 'my cfg text'
 
 #console.log new Node text: 'my cfg.text text'
-
-
-
 
 
 window.model = model

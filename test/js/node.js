@@ -85,6 +85,7 @@
   expectValidTextNode = function(node, clazz, text) {
     expectClass(node, clazz);
     expectExtends(node.view, Text);
+    expect(node.kind).to.equal(Node.TEXT_KIND);
     expect(node.view.nodeValue).to.equal(text + '');
     return expect(node.text).to.equal(text);
   };
@@ -92,213 +93,29 @@
   expectValidTagNode = function(node, clazz, tag) {
     expectClass(node, clazz);
     expectExtends(node.view, HTMLElement);
+    expect(node.kind).to.equal(Node.TAG_KIND);
     expect(node.view.nodeName.toLowerCase()).to.equal(tag);
     return expect(node.tag).to.equal(tag);
   };
 
   expectAttr = function(node, name, value) {
     expectExtends(node.view, HTMLElement);
-    value = Node.getOrCall(value);
-    expect(node.attrs[name]).to.equal(value);
+    expect(node.kind).to.equal(Node.TAG_KIND);
+    expect(node.attrs[name]).to.equal(value = Node.getOrCall(value));
     return expect(node.view.getAttribute(name)).to.equal(value + '');
   };
 
   expectBoolAttr = function(node, name, value) {
     expectExtends(node.view, HTMLElement);
-    value = Node.getOrCall(value);
-    expect(node.attrs[name]).to.equal(value);
+    expect(node.attrs[name]).to.equal(value = Node.getOrCall(value));
     if (value === true) {
       expect(node.view.getAttribute(name)).to.equal('');
-      return expect(node.view[name]).to.equal(true);
+      return expect(node.view[name]).to.equal(value);
     } else {
       expect(node.view.getAttribute(name)).to.equal(null);
-      return expect(node.view[name]).to.equal(false);
+      return expect(node.view[name]).to.equal(value);
     }
   };
-
-  describe('new Node', function() {
-    it("should return a valid text node, if cfg = 'text'", function() {
-      return expectValidTextNode(new Node('text'), Node, 'text');
-    });
-    it("should return a valid text node, if cfg = Text", function() {
-      return expectValidTextNode(new Node(getText('text')), Node, 'text');
-    });
-    it("should return a valid text node, if cfg.text = 'text'", function() {
-      return expectValidTextNode(new Node({
-        text: 'text'
-      }), Node, 'text');
-    });
-    it("should return a valid text node, if cfg.tag = Text", function() {
-      return expectValidTextNode(new Node({
-        tag: getText('text')
-      }), Node, 'text');
-    });
-    it("should return a valid tag node, if cfg = HTMLELement", function() {
-      return expectValidTagNode(new Node(getTag('div')), Node, 'div');
-    });
-    it("should return a valid tag node, if cfg.tag = 'div'", function() {
-      return expectValidTagNode(new Node({
-        tag: 'div'
-      }), Node, 'div');
-    });
-    it("should return a valid tag node, if cfg.tag = HTMLELement", function() {
-      return expectValidTagNode(new Node({
-        tag: getTag('div')
-      }), Node, 'div');
-    });
-    it("should throw an error, if cfg = null", function() {
-      return expect(function() {
-        return new Node();
-      }).to["throw"]();
-    });
-    it("should throw an error, if neither tag nor text are set", function() {
-      return expect(function() {
-        return new Node({});
-      }).to["throw"]();
-    });
-    it("should throw an error, if cfg.tag is invalid", function() {
-      expect(function() {
-        return new Node({
-          tag: 1
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          tag: true
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          tag: {}
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          tag: []
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          tag: function() {}
-        });
-      }).to["throw"]();
-      return expect(function() {
-        return new Node({
-          tag: Node
-        });
-      }).to["throw"]();
-    });
-    it("should throw an error, if cfg.text is invalid", function() {
-      expect(function() {
-        return new Node({
-          text: null
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          text: {}
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          text: []
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          text: function() {}
-        });
-      }).to["throw"]();
-      expect(function() {
-        return new Node({
-          text: function() {
-            return {};
-          }
-        });
-      }).to["throw"]();
-      return expect(function() {
-        return new Node({
-          text: function() {
-            return [];
-          }
-        });
-      }).to["throw"]();
-    });
-    it("should not throw an error, if cfg.text is valid", function() {
-      expect(function() {
-        return expectValidTextNode(new Node({
-          text: ''
-        }), Node, '');
-      }).to.not["throw"]();
-      expect(function() {
-        return expectValidTextNode(new Node({
-          text: 1
-        }), Node, 1);
-      }).to.not["throw"]();
-      expect(function() {
-        return expectValidTextNode(new Node({
-          text: true
-        }), Node, true);
-      }).to.not["throw"]();
-      expect(function() {
-        return expectValidTextNode(new Node({
-          text: function() {
-            return '';
-          }
-        }), Node, '');
-      }).to.not["throw"]();
-      expect(function() {
-        return expectValidTextNode(new Node({
-          text: function() {
-            return 1;
-          }
-        }), Node, 1);
-      }).to.not["throw"]();
-      return expect(function() {
-        return expectValidTextNode(new Node({
-          text: function() {
-            return true;
-          }
-        }), Node, true);
-      }).to.not["throw"]();
-    });
-    it("should create a attr title = 'my title'", function() {
-      var cfg, node;
-      cfg = {
-        tag: 'div',
-        title: 'my title'
-      };
-      expectValidTagNode(node = new Node(cfg), Node, 'div');
-      return expectAttr(node, 'title', 'my title');
-    });
-    it("should create a bool attr disabled = true", function() {
-      var cfg, node;
-      cfg = {
-        tag: 'div',
-        disabled: true
-      };
-      expectValidTagNode(node = new Node(cfg), Node, 'div');
-      return expectBoolAttr(node, 'disabled', true);
-    });
-    it("should create a bool attr disabled = false", function() {
-      var cfg, node;
-      cfg = {
-        tag: 'div',
-        disabled: false
-      };
-      expectValidTagNode(node = new Node(cfg), Node, 'div');
-      return expectBoolAttr(node, 'disabled', false);
-    });
-    return it("should create a bool attr disabled = false", function() {
-      var cfg, node;
-      cfg = {
-        tag: 'div',
-        disabled: false
-      };
-      expectValidTagNode(node = new Node(cfg), Node, 'div');
-      return expectBoolAttr(node, 'disabled', false);
-    });
-  });
 
   describe('Node', function() {
     return describe('.create', function() {
@@ -492,6 +309,190 @@
           }), Node, true);
         }).to.not["throw"]();
       });
+    });
+  });
+
+  describe('new Node', function() {
+    it("should return a valid text node, if cfg = 'text'", function() {
+      return expectValidTextNode(new Node('text'), Node, 'text');
+    });
+    it("should return a valid text node, if cfg = Text", function() {
+      return expectValidTextNode(new Node(getText('text')), Node, 'text');
+    });
+    it("should return a valid text node, if cfg.text = 'text'", function() {
+      return expectValidTextNode(new Node({
+        text: 'text'
+      }), Node, 'text');
+    });
+    it("should return a valid text node, if cfg.tag = Text", function() {
+      return expectValidTextNode(new Node({
+        tag: getText('text')
+      }), Node, 'text');
+    });
+    it("should return a valid tag node, if cfg = HTMLELement", function() {
+      return expectValidTagNode(new Node(getTag('div')), Node, 'div');
+    });
+    it("should return a valid tag node, if cfg.tag = 'div'", function() {
+      return expectValidTagNode(new Node({
+        tag: 'div'
+      }), Node, 'div');
+    });
+    it("should return a valid tag node, if cfg.tag = HTMLELement", function() {
+      return expectValidTagNode(new Node({
+        tag: getTag('div')
+      }), Node, 'div');
+    });
+    it("should throw an error, if cfg = null", function() {
+      return expect(function() {
+        return new Node();
+      }).to["throw"]();
+    });
+    it("should throw an error, if neither tag nor text are set", function() {
+      return expect(function() {
+        return new Node({});
+      }).to["throw"]();
+    });
+    it("should throw an error, if cfg.tag is invalid", function() {
+      expect(function() {
+        return new Node({
+          tag: 1
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          tag: true
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          tag: {}
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          tag: []
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          tag: function() {}
+        });
+      }).to["throw"]();
+      return expect(function() {
+        return new Node({
+          tag: Node
+        });
+      }).to["throw"]();
+    });
+    it("should throw an error, if cfg.text is invalid", function() {
+      expect(function() {
+        return new Node({
+          text: null
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          text: {}
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          text: []
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          text: function() {}
+        });
+      }).to["throw"]();
+      expect(function() {
+        return new Node({
+          text: function() {
+            return {};
+          }
+        });
+      }).to["throw"]();
+      return expect(function() {
+        return new Node({
+          text: function() {
+            return [];
+          }
+        });
+      }).to["throw"]();
+    });
+    it("should not throw an error, if cfg.text is valid", function() {
+      expect(function() {
+        return expectValidTextNode(new Node({
+          text: ''
+        }), Node, '');
+      }).to.not["throw"]();
+      expect(function() {
+        return expectValidTextNode(new Node({
+          text: 1
+        }), Node, 1);
+      }).to.not["throw"]();
+      expect(function() {
+        return expectValidTextNode(new Node({
+          text: true
+        }), Node, true);
+      }).to.not["throw"]();
+      expect(function() {
+        return expectValidTextNode(new Node({
+          text: function() {
+            return '';
+          }
+        }), Node, '');
+      }).to.not["throw"]();
+      expect(function() {
+        return expectValidTextNode(new Node({
+          text: function() {
+            return 1;
+          }
+        }), Node, 1);
+      }).to.not["throw"]();
+      return expect(function() {
+        return expectValidTextNode(new Node({
+          text: function() {
+            return true;
+          }
+        }), Node, true);
+      }).to.not["throw"]();
+    });
+    it("should create a attr title = 'my title'", function() {
+      var cfg, node;
+      cfg = {
+        tag: 'div',
+        title: 'my title'
+      };
+      expectValidTagNode(node = new Node(cfg), Node, 'div');
+      return expectAttr(node, 'title', 'my title');
+    });
+    it("should create a bool attr disabled = true", function() {
+      var cfg, node;
+      cfg = {
+        tag: 'div',
+        disabled: true
+      };
+      expectValidTagNode(node = new Node(cfg), Node, 'div');
+      return expectBoolAttr(node, 'disabled', true);
+    });
+    it("should create a bool attr disabled = false", function() {
+      var cfg, node;
+      cfg = {
+        tag: 'div',
+        disabled: false
+      };
+      expectValidTagNode(node = new Node(cfg), Node, 'div');
+      return expectBoolAttr(node, 'disabled', false);
+    });
+    return it("should remove a bool attr disabled = undefined", function() {
+      var cfg, node;
+      cfg = {
+        tag: 'div',
+        disabled: void 0
+      };
+      expectValidTagNode(node = new Node(cfg), Node, 'div');
+      return expectBoolAttr(node, 'disabled', void 0);
     });
   });
 

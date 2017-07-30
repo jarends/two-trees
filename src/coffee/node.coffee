@@ -88,10 +88,12 @@ class Node
     @DEFAULT_CLASS = @
     @CHECK_DOM     = true
     @TEXT_KIND     = 0
-    @NODE_KIND     = 1
+    @TAG_KIND      = 1
 
 
     constructor: (@cfg) ->
+        @__id__          = ++__id__
+        nodeMap[@__id__] = @
         @keep  = @keep  == true or false
         @valid = @valid == true or false
         @init()
@@ -100,9 +102,10 @@ class Node
     init: () -> init @
 
     # add nodes view to dom
-    behind:  (dom) -> behind  @, dom
-    before:  (dom) -> before  @, dom
-    replace: (dom) -> replace @, dom
+    appendTo: (dom) -> append  @, dom
+    behind:   (dom) -> behind  @, dom
+    before:   (dom) -> before  @, dom
+    replace:  (dom) -> replace @, dom
 
     # remove nodes view from dom
     remove: () -> remove  @
@@ -157,9 +160,13 @@ class Node
 #       000     000   000  00000000  00000000
 
 
+__id__   = 0
 classMap = {}
 domList  = []
-
+nodeMap    = {}
+dirtyMap   = {}
+dirty      = false
+rafTimeout = null
 
 
 
@@ -177,12 +184,6 @@ map = (tag, clazz, overwrite = false) ->
 
 
     
-#    000   000  000   000  00     00   0000000   00000000 
-#    000   000  0000  000  000   000  000   000  000   000
-#    000   000  000 0 000  000000000  000000000  00000000 
-#    000   000  000  0000  000 0 000  000   000  000      
-#     0000000   000   000  000   000  000   000  000      
-
 unmap = (tag) ->
     delete classMap[tag]
 
@@ -237,11 +238,6 @@ init = (node) ->
 
 
 
-#    000  000   000  000  000000000        000000000  00000000  000   000  000000000
-#    000  0000  000  000     000              000     000        000 000      000   
-#    000  000 0 000  000     000              000     0000000     00000       000   
-#    000  000  0000  000     000              000     000        000 000      000   
-#    000  000   000  000     000              000     00000000  000   000     000   
 
 initTextNode = (node, cfg) ->
     text = cfg.text
@@ -250,20 +246,16 @@ initTextNode = (node, cfg) ->
         throw new Error "The text for a text node must be a string, number or bool."
     node.text = text
     node.tag  = cfg.tag  = null
+    node.kind = Node.TEXT_KIND
     node.view = document.createTextNode text
     node
 
 
 
 
-#    000  000   000  000  000000000        000000000   0000000    0000000 
-#    000  0000  000  000     000              000     000   000  000      
-#    000  000 0 000  000     000              000     000000000  000  0000
-#    000  000  0000  000     000              000     000   000  000   000
-#    000  000   000  000     000              000     000   000   0000000 
-
 initTagNode = (node, cfg) ->
     node.tag  = tag = cfg.tag
+    node.kind = Node.TAG_KIND
     node.view = document.createElement tag
     updateProps node, cfg
     node
@@ -271,16 +263,11 @@ initTagNode = (node, cfg) ->
 
 
 
-#    000000000  00000000  000   000  000000000        00000000  00000000    0000000   00     00        0000000     0000000   00     00
-#       000     000        000 000      000           000       000   000  000   000  000   000        000   000  000   000  000   000
-#       000     0000000     00000       000           000000    0000000    000   000  000000000        000   000  000   000  000000000
-#       000     000        000 000      000           000       000   000  000   000  000 0 000        000   000  000   000  000 0 000
-#       000     00000000  000   000     000           000       000   000   0000000   000   000        0000000     0000000   000   000
-
 initTextFromDom = (node, cfg, dom) ->
     checkDom dom if Node.CHECK_DOM
     node.text = dom.nodeValue
     node.tag  = null
+    node.kind = Node.TEXT_KIND
     node.view = dom
     if cfg
         text = cfg.text
@@ -298,20 +285,16 @@ initTextFromDom = (node, cfg, dom) ->
 
 
 
-#    000000000   0000000    0000000         00000000  00000000    0000000   00     00        0000000     0000000   00     00
-#       000     000   000  000              000       000   000  000   000  000   000        000   000  000   000  000   000
-#       000     000000000  000  0000        000000    0000000    000   000  000000000        000   000  000   000  000000000
-#       000     000   000  000   000        000       000   000  000   000  000 0 000        000   000  000   000  000 0 000
-#       000     000   000   0000000         000       000   000   0000000   000   000        0000000     0000000   000   000
-
 initTagFromDom = (node, cfg, dom) ->
     checkDom dom if Node.CHECK_DOM
     node.tag  = dom.nodeName.toLowerCase()
+    node.kind = Node.TAG_KIND
     node.view = dom
     if cfg and isString(cfg.tag) and cfg.tag != node.tag
         throw new Error "A cfg and the dom element must have the same tag. Got #{cfg.tag} and #{node.tag}"
     cfg     = cfg or node.cfg = {}
     cfg.tag = node.tag
+    updateProps node, cfg
     node
 
 
@@ -331,11 +314,43 @@ checkDom = (dom) ->
 
 
 
-#    000   000  00000000   0000000     0000000   000000000  00000000        000000000  00000000  000   000  000000000
-#    000   000  000   000  000   000  000   000     000     000                000     000        000 000      000   
-#    000   000  00000000   000   000  000000000     000     0000000            000     0000000     00000       000   
-#    000   000  000        000   000  000   000     000     000                000     000        000 000      000   
-#     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
+#    00000000   00000000  00000000   00000000   0000000   00000000   00     00
+#    000   000  000       000   000  000       000   000  000   000  000   000
+#    00000000   0000000   0000000    000000    000   000  0000000    000000000
+#    000        000       000   000  000       000   000  000   000  000 0 000
+#    000        00000000  000   000  000        0000000   000   000  000   000
+
+performUpdate = () ->
+
+
+
+
+#    000   000  00000000   0000000     0000000   000000000  00000000
+#    000   000  000   000  000   000  000   000     000     000     
+#    000   000  00000000   000   000  000000000     000     0000000 
+#    000   000  000        000   000  000   000     000     000     
+#     0000000   000        0000000    000   000     000     00000000
+
+update = (node) ->
+
+
+
+
+updateKey = (node, name, value) ->
+
+
+
+
+updateNow = (node) ->
+    cfg = node.render()
+
+
+
+
+updateKeyNow = (node, name, value) ->
+
+
+
 
 updateText = (node, cfg) ->
     text = cfg.text
@@ -350,14 +365,8 @@ updateText = (node, cfg) ->
 
 
 
-#    000   000  00000000   0000000     0000000   000000000  00000000        00000000   00000000    0000000   00000000    0000000
-#    000   000  000   000  000   000  000   000     000     000             000   000  000   000  000   000  000   000  000     
-#    000   000  00000000   000   000  000000000     000     0000000         00000000   0000000    000   000  00000000   0000000 
-#    000   000  000        000   000  000   000     000     000             000        000   000  000   000  000             000
-#     0000000   000        0000000    000   000     000     00000000        000        000   000   0000000   000        0000000 
-
 updateProps = (node, cfg) ->
-    console.log 'updateProps: ', node, cfg
+    #console.log 'updateProps: ', node, cfg
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
@@ -447,7 +456,6 @@ updateBool = (node, value, name) ->
         view.removeAttribute name
         view[name]       = false
         node.attrs[name] = false
-        console.log 'set to false: ', view[name]
     else
         view.setAttribute name, ''
         view[name]       = true
@@ -749,6 +757,10 @@ disposeNode = (node) ->
     null
 
 
+append = (node, dom) ->
+    checkDom dom if Node.CHECK_DOM
+    dom.appendChild node.view
+
 
 behind        = (node, dom) ->
 before        = (node, dom) ->
@@ -758,10 +770,6 @@ addChild      = (node, child) ->
 addChildAt    = (node, child, index) ->
 removeChild   = (node, index) ->
 removeChildAt = (node, index) ->
-updateNow     = (node) ->
-updateKeyNow  = (node, name, value) ->
-update        = (node) ->
-updateKey     = (node, name, value) ->
 disposeNode   = () ->
 clone         = () ->
 
@@ -781,6 +789,12 @@ clone         = () ->
 Node.create      = create
 Node.map         = map
 Node.unmap       = unmap
+
+Node.append      = append
+Node.behind      = behind
+Node.before      = before
+Node.replace     = replace
+Node.remove      = remove
 
 Node.getOrCall   = getOrCall
 Node.isBool      = isBool

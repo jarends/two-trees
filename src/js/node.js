@@ -44,7 +44,7 @@
  */
 
 (function() {
-  var Node, addChild, addChildAt, before, behind, change, checkDom, classMap, clone, create, disposeNode, domList, extendsNode, getOrCall, init, initTagFromDom, initTagNode, initTextFromDom, initTextNode, isBool, isDom, isDomText, isFunc, isNot, isNumber, isObject, isSimple, isString, j, lastTime, len, map, normalizeEvent, normalizeName, remove, removeChild, removeChildAt, removeEvents, replace, replaceChild, unmap, update, updateAttr, updateBool, updateChildren, updateClass, updateEvent, updateKey, updateKeyNow, updateNow, updateProps, updateStyle, updateText, vendor, vendors,
+  var Node, __id__, addChild, addChildAt, append, before, behind, change, checkDom, classMap, clone, create, dirty, dirtyMap, disposeNode, domList, extendsNode, getOrCall, init, initTagFromDom, initTagNode, initTextFromDom, initTextNode, isBool, isDom, isDomText, isFunc, isNot, isNumber, isObject, isSimple, isString, j, lastTime, len, map, nodeMap, normalizeEvent, normalizeName, performUpdate, rafTimeout, remove, removeChild, removeChildAt, removeEvents, replace, replaceChild, unmap, update, updateAttr, updateBool, updateChildren, updateClass, updateEvent, updateKey, updateKeyNow, updateNow, updateProps, updateStyle, updateText, vendor, vendors,
     slice = [].slice;
 
   getOrCall = function(value) {
@@ -114,10 +114,12 @@
 
     Node.TEXT_KIND = 0;
 
-    Node.NODE_KIND = 1;
+    Node.TAG_KIND = 1;
 
     function Node(cfg1) {
       this.cfg = cfg1;
+      this.__id__ = ++__id__;
+      nodeMap[this.__id__] = this;
       this.keep = this.keep === true || false;
       this.valid = this.valid === true || false;
       this.init();
@@ -125,6 +127,10 @@
 
     Node.prototype.init = function() {
       return init(this);
+    };
+
+    Node.prototype.appendTo = function(dom) {
+      return append(this, dom);
     };
 
     Node.prototype.behind = function(dom) {
@@ -203,9 +209,19 @@
 
   })();
 
+  __id__ = 0;
+
   classMap = {};
 
   domList = [];
+
+  nodeMap = {};
+
+  dirtyMap = {};
+
+  dirty = false;
+
+  rafTimeout = null;
 
   map = function(tag, clazz, overwrite) {
     if (overwrite == null) {
@@ -294,6 +310,7 @@
     }
     node.text = text;
     node.tag = cfg.tag = null;
+    node.kind = Node.TEXT_KIND;
     node.view = document.createTextNode(text);
     return node;
   };
@@ -301,6 +318,7 @@
   initTagNode = function(node, cfg) {
     var tag;
     node.tag = tag = cfg.tag;
+    node.kind = Node.TAG_KIND;
     node.view = document.createElement(tag);
     updateProps(node, cfg);
     return node;
@@ -313,6 +331,7 @@
     }
     node.text = dom.nodeValue;
     node.tag = null;
+    node.kind = Node.TEXT_KIND;
     node.view = dom;
     if (cfg) {
       text = cfg.text;
@@ -340,12 +359,14 @@
       checkDom(dom);
     }
     node.tag = dom.nodeName.toLowerCase();
+    node.kind = Node.TAG_KIND;
     node.view = dom;
     if (cfg && isString(cfg.tag) && cfg.tag !== node.tag) {
       throw new Error("A cfg and the dom element must have the same tag. Got " + cfg.tag + " and " + node.tag);
     }
     cfg = cfg || (node.cfg = {});
     cfg.tag = node.tag;
+    updateProps(node, cfg);
     return node;
   };
 
@@ -355,6 +376,19 @@
     }
     return domList.push(dom);
   };
+
+  performUpdate = function() {};
+
+  update = function(node) {};
+
+  updateKey = function(node, name, value) {};
+
+  updateNow = function(node) {
+    var cfg;
+    return cfg = node.render();
+  };
+
+  updateKeyNow = function(node, name, value) {};
 
   updateText = function(node, cfg) {
     var text;
@@ -373,7 +407,6 @@
 
   updateProps = function(node, cfg) {
     var attr, attrs, name, propMap, value;
-    console.log('updateProps: ', node, cfg);
     if (cfg instanceof Node) {
       cfg = cfg.render();
     }
@@ -454,7 +487,6 @@
       view.removeAttribute(name);
       view[name] = false;
       node.attrs[name] = false;
-      console.log('set to false: ', view[name]);
     } else {
       view.setAttribute(name, '');
       view[name] = true;
@@ -704,6 +736,13 @@
     return null;
   };
 
+  append = function(node, dom) {
+    if (Node.CHECK_DOM) {
+      checkDom(dom);
+    }
+    return dom.appendChild(node.view);
+  };
+
   behind = function(node, dom) {};
 
   before = function(node, dom) {};
@@ -720,14 +759,6 @@
 
   removeChildAt = function(node, index) {};
 
-  updateNow = function(node) {};
-
-  updateKeyNow = function(node, name, value) {};
-
-  update = function(node) {};
-
-  updateKey = function(node, name, value) {};
-
   disposeNode = function() {};
 
   clone = function() {};
@@ -737,6 +768,16 @@
   Node.map = map;
 
   Node.unmap = unmap;
+
+  Node.append = append;
+
+  Node.behind = behind;
+
+  Node.before = before;
+
+  Node.replace = replace;
+
+  Node.remove = remove;
 
   Node.getOrCall = getOrCall;
 
