@@ -1,4 +1,13 @@
 ###
+
+    cfg used:
+        Node.create cfg
+        node.init -> through node.render()
+        node.updateNow cfg
+        performUpdate -> through node.updateNow node.render()
+        Node.updateChildren
+
+
     cfg as string || boolean || number
         node is a text node
 
@@ -30,8 +39,6 @@
         child:
         children:
         event handlers starting with 'on', camel case converts to kebab case
-
-
 
 
     update:
@@ -86,16 +93,17 @@ class Node
 
 
     @DEFAULT_CLASS = @
+    @DEBUG         = true
     @CHECK_DOM     = true
     @TEXT_KIND     = 0
     @TAG_KIND      = 1
 
 
     constructor: (@cfg) ->
+        @keep            = false
+        @valid           = false
         @__id__          = ++__id__
         nodeMap[@__id__] = @
-        @keep  = @keep  == true or false
-        @valid = @valid == true or false
         @init()
 
     # internal node configuration
@@ -116,11 +124,9 @@ class Node
     removeChild:   (child)        -> removeChild   @, child
     removeChildAt: (index)        -> removeChildAt @, index
     updateNow:     ()             -> updateNow     @
-    updateKeyNow:  (name, value)  -> updateKeyNow  @, name, value
 
     # raf timed dom manipulation
-    update:    ()            -> update    @
-    updateKey: (name, value) -> updateKey @, name, value
+    update: () -> update @
 
     # override
     render: () -> @cfg
@@ -144,11 +150,11 @@ class Node
     # nodes view removed from dom
     onUnmount: () -> @keep
 
-    # nodes view  was updated
-    onUpdated: () ->
+    # nodes view will update
+    onBeforeUpdate: (cfg) -> true
 
-    # a key on nodes view was updated
-    onKeyUpdated: () ->
+    # nodes view  was updated
+    onUpdated: (cfg) ->
 
 
 
@@ -160,9 +166,9 @@ class Node
 #       000     000   000  00000000  00000000
 
 
-__id__   = 0
-classMap = {}
-domList  = []
+__id__     = 0
+classMap   = {}
+domList    = []
 nodeMap    = {}
 dirtyMap   = {}
 dirty      = false
@@ -188,6 +194,32 @@ unmap = (tag) ->
     delete classMap[tag]
 
 
+
+
+#    000   000  000  000   000  0000000
+#    000  000   000  0000  000  000   000
+#    0000000    000  000 0 000  000   000
+#    000  000   000  000  0000  000   000
+#    000   000  000  000   000  0000000
+
+getKind = (cfg) ->
+    return kind if isNumber kind = cfg.kind
+    switch true
+        when isSimple  cfg then kind = Node.TEXT_KIND
+        when isDom     cfg then kind = Node.TAG_KIND
+        when isDomText cfg then kind = Node.TEXT_KIND
+        else
+            tag = cfg.tag
+            switch true
+                when isNot     tag then kind = Node.TEXT_KIND
+                when isString  tag then kind = Node.TAG_KIND
+                when isDom     tag then kind = Node.TAG_KIND
+                when isDomText tag then kind = Node.TEXT_KIND
+                else
+                    if extendsNode tag
+                        throw new Error "A tag must be a string or a HTMLElement, you specified a Node class."
+                    throw new Error "A tag must be a string or a HTMLElement."
+    kind
 
 
 #     0000000  00000000   00000000   0000000   000000000  00000000
@@ -281,7 +313,8 @@ initTextFromDom = (node, cfg, dom) ->
         else
             cfg.text = node.text
     else
-        node.cfg = text: node.text
+        cfg = node.cfg = text: node.text
+    cfg.tag = null
     node
 
 
@@ -292,10 +325,8 @@ initTagFromDom = (node, cfg, dom) ->
     node.tag  = dom.nodeName.toLowerCase()
     node.kind = Node.TAG_KIND
     node.view = dom
-    if cfg and isString(cfg.tag) and cfg.tag != node.tag
-        throw new Error "A cfg and the dom element must have the same tag. Got #{cfg.tag} and #{node.tag}"
-    cfg     = cfg or node.cfg = {}
-    cfg.tag = node.tag
+    cfg       = cfg or node.cfg = {}
+    cfg.tag   = node.tag
     updateProps node, cfg
     node
 
@@ -323,6 +354,18 @@ checkDom = (dom) ->
 #    000        00000000  000   000  000        0000000   000   000  000   000
 
 performUpdate = () ->
+    #console.log 'performUpdate: ', dirty, dirtyMap
+    window.cancelAnimationFrame rafTimeout
+    dirty = false
+    nodes = []
+    nodes.push n for id of dirtyMap when n = nodeMap[id]
+    nodes.sort (a, b) -> a.depth - b.depth
+    for node in nodes
+        continue if not nodeMap[id = node.__id__] or not dirtyMap[id]
+        node.updateNow()
+
+    dirtyMap = {}
+    null
 
 
 
@@ -334,34 +377,45 @@ performUpdate = () ->
 #     0000000   000        0000000    000   000     000     00000000
 
 update = (node) ->
+    id = node.__id__
+    if not id or nodeMap[id] != node
+        throw new Error "Can't update node. Node not part of this system."
 
+    if not dirty
+        window.cancelAnimationFrame rafTimeout
+        rafTimeout = window.requestAnimationFrame performUpdate
 
-
-
-updateKey = (node, name, value) ->
+    dirtyMap[id] = true
+    dirty        = true
+    null
 
 
 
 
 updateNow = (node) ->
     cfg = node.render()
+    if node.kind != getKind cfg
+        replaceChild node, cfg
+    else if node.kind == Node.TEXT_KIND
+        updateText node, cfg
+    else if node.kind == Node.TAG_KIND
 
-
-
-
-updateKeyNow = (node, name, value) ->
+        updateProps node, cfg
+    else
+        throw new Error 'Unknown node kind. Got: ', node.kind
+    node
 
 
 
 
 updateText = (node, cfg) ->
+    delete dirtyMap[node.__id__]
     text = cfg.text
     if not isNot text
         text = text() if isFunc text
         if not isSimple text
             throw new Error "The text for a text node must be a string, number or bool."
-    else
-        cfg.text = node.text
+    node.view.nodeValue = text
 
 
 
@@ -369,6 +423,7 @@ updateText = (node, cfg) ->
 
 updateProps = (node, cfg) ->
     #console.log 'updateProps: ', node, cfg
+    delete dirtyMap[node.__id__]
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
@@ -379,7 +434,27 @@ updateProps = (node, cfg) ->
     if propMap.hasOwnProperty 'style'
         updateStyle node, cfg.style
 
-    if propMap.hasOwnProperty 'children'
+    if propMap.hasOwnProperty 'text'
+        text = text() if isFunc text = cfg.text
+        if isSimple text
+            updateChildren node, text
+        else if isDomText text
+            updateChildren node, [text]
+
+        if Node.DEBUG
+            if cfg.hasOwnProperty 'child'
+                console.warn 'child specified while text exists: ', cfg
+            if cfg.hasOwnProperty 'children'
+                console.warn 'children specified while text exists', cfg
+    else if propMap.hasOwnProperty 'child'
+        child = child() if isFunc child = cfg.child
+        updateChildren node, [child]
+
+        if Node.DEBUG
+            if cfg.hasOwnProperty 'children'
+                console.warn 'children specified while text exists', cfg
+
+    else if propMap.hasOwnProperty 'children'
         updateChildren node, cfg.children
 
     delete propMap.tag
@@ -587,6 +662,9 @@ removeEvents = (node) ->
 #     0000000  000   000  000  0000000  0000000    000   000  00000000  000   000
 
 updateChildren = (node, cfgs) ->
+
+    #console.log 'updateChildren: ', node, cfgs
+
     #TODO: allow object as only child
     children = node.children or node.children = []
     cfgs     = cfgs() if isFunc cfgs
@@ -597,8 +675,10 @@ updateChildren = (node, cfgs) ->
         cfg   = cfgs[i]
         cfg   = cfg() if isFunc cfg
 
+        #console.log 'updateChild: ', child, cfg
+
         if not child and not cfg
-            throw new Error "DOM ERROR: either child or cfg at index #{i} must be defined. Got " + child + ', ' + cfg
+            throw new Error "Either child or cfg at index #{i} must be defined."
         if not child
             addChild node, cfg
         else if not cfg
@@ -619,7 +699,6 @@ updateChildren = (node, cfgs) ->
 
 change = (node, cfg) ->
     needsUpdate = node.needsUpdate()
-    canUpdate   = node.canUpdate(cfg)
     if node == cfg or node.constructor == cfg.tag
         updateProperties node, node.render() if needsUpdate and canUpdate
         replaceChild     node, node.render() if needsUpdate and not canUpdate
@@ -650,21 +729,12 @@ addChild = (node, cfg) ->
     if cfg instanceof Node
         child = cfg
     else
-        child = create cfg, null, cfg.__i__ or node.__i__
-
-    cfg = child.render()
-    if not child.view
-        child.view = createView child, cfg
+        child = create cfg
 
     node.children.push child
     node.view.appendChild child.view
     child.parent = node
     child.depth  = node.depth + 1
-
-    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
-        updateText child, cfg
-    else
-        updateProperties child, cfg
 
     child.onMount()
     null
@@ -802,9 +872,9 @@ remove = (node) ->
 
 
 
-addChild = (node, child) ->
+#addChild = (node, child) ->
 addChildAt = (node, child, index) ->
-removeChild = (node, index) ->
+#removeChild = (node, index) ->
 removeChildAt = (node, index) ->
 disposeNode = () ->
 clone = () ->
@@ -832,6 +902,7 @@ Node.before      = before
 Node.replace     = replace
 Node.remove      = remove
 
+Node.getKind     = getKind
 Node.getOrCall   = getOrCall
 Node.isBool      = isBool
 Node.isNumber    = isNumber

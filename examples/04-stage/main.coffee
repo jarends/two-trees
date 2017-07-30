@@ -15,15 +15,22 @@ model = new DataTree
     numTotal: 0
     filter:   'all'
 
-
 app = new Node
     tag:'div'
     title: 'my title'
     disabled: false
+    children: [
+        tag: 'div'
+        title: 'div child'
+    ]
+
 
 app.appendTo document.querySelector '.app'
 
 console.log app
+
+#app.cfg.title = 'my title!!!'
+#app.update()
 
 
 #console.log new Node tag: document.querySelector '.app'

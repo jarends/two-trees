@@ -22,7 +22,7 @@ expectClass   = (node, clazz) -> expect(node.constructor).to.equal clazz
 expectExtends = (node, clazz) -> expect(node).to.be.instanceof clazz
 
 
-expectValidTextNode = (node, clazz, text) ->
+expectTextNode = (node, clazz, text) ->
     expectClass   node, clazz
     expectExtends node.view, Text
     expect(node.kind).to.equal Node.TEXT_KIND
@@ -30,7 +30,7 @@ expectValidTextNode = (node, clazz, text) ->
     expect(node.text).to.equal text
 
 
-expectValidTagNode = (node, clazz, tag) ->
+expectTagNode = (node, clazz, tag) ->
     expectClass   node, clazz
     expectExtends node.view, HTMLElement
     expect(node.kind).to.equal Node.TAG_KIND
@@ -62,42 +62,48 @@ expectBoolAttr = (node, name, value) ->
 
 
 
+#     0000000  00000000   00000000   0000000   000000000  00000000
+#    000       000   000  000       000   000     000     000     
+#    000       0000000    0000000   000000000     000     0000000 
+#    000       000   000  000       000   000     000     000     
+#     0000000  000   000  00000000  000   000     000     00000000
+
 describe 'Node', () ->
 
     describe '.create', () ->
 
         it "should return a valid text node, if cfg = 'text'", () ->
-            expectValidTextNode Node.create('text'), Node, 'text'
+            expectTextNode Node.create('text'), Node, 'text'
 
         it "should return a valid text node, if cfg = Text", () ->
-            expectValidTextNode Node.create(getText('text')), Node, 'text'
+            expectTextNode Node.create(getText('text')), Node, 'text'
 
         it "should return a valid text node, if cfg.text = 'text'", () ->
-            expectValidTextNode Node.create(text: 'text'), Node, 'text'
+            expectTextNode Node.create(text: 'text'), Node, 'text'
 
         it "should return a valid text node, if cfg.tag = Text", () ->
-            expectValidTextNode Node.create(tag: getText('text')), Node, 'text'
+            expectTextNode Node.create(tag: getText('text')), Node, 'text'
 
         it "should return a valid text node, if cfg.clazz = MyTextNode1", () ->
-            expectValidTextNode Node.create(clazz: MyTextNode1), MyTextNode1, 'text'
+            expectTextNode Node.create(clazz: MyTextNode1), MyTextNode1, 'text'
 
         it "should return a valid text node, if cfg.clazz = MyTextNode2", () ->
-            expectValidTextNode Node.create(clazz: MyTextNode2), MyTextNode2, 'text'
+            expectTextNode Node.create(clazz: MyTextNode2), MyTextNode2, 'text'
 
         it "should return a valid tag node, if cfg = HTMLELement", () ->
-            expectValidTagNode Node.create(getTag('div')), Node, 'div'
+            expectTagNode Node.create(getTag('div')), Node, 'div'
 
         it "should return a valid tag node, if cfg.tag = 'div'", () ->
-            expectValidTagNode Node.create(tag:'div'), Node, 'div'
+            expectTagNode Node.create(tag:'div'), Node, 'div'
 
         it "should return a valid tag node, if cfg.tag = HTMLELement", () ->
-            expectValidTagNode Node.create(tag: getTag('div')), Node, 'div'
+            expectTagNode Node.create(tag: getTag('div')), Node, 'div'
 
         it "should return a valid tag node, if cfg.tag = MyValidNode", () ->
-            expectValidTagNode Node.create(tag: MyValidNode), MyValidNode, 'div'
+            expectTagNode Node.create(tag: MyValidNode), MyValidNode, 'div'
 
         it "should return a valid tag node, if cfg.clazz = MyValidNode", () ->
-            expectValidTagNode Node.create(clazz: MyValidNode), MyValidNode, 'div'
+            expectTagNode Node.create(clazz: MyValidNode), MyValidNode, 'div'
 
         it "should throw an error, if cfg = null", () ->
             expect(() -> Node.create()).to.throw()
@@ -133,99 +139,223 @@ describe 'Node', () ->
             expect(() -> Node.create({text: '', clazz: MyExtendedNode})).to.not.throw()
 
         it "should not throw an error, if cfg.text is valid", () ->
-            expect(() -> expectValidTextNode Node.create(text: ''),         Node, '')   .to.not.throw()
-            expect(() -> expectValidTextNode Node.create(text: 1),          Node, 1)   .to.not.throw()
-            expect(() -> expectValidTextNode Node.create(text: true),       Node, true).to.not.throw()
-            expect(() -> expectValidTextNode Node.create(text: () -> ''),   Node, '')  .to.not.throw()
-            expect(() -> expectValidTextNode Node.create(text: () -> 1),    Node, 1)   .to.not.throw()
-            expect(() -> expectValidTextNode Node.create(text: () -> true), Node, true).to.not.throw()
+            expect(() -> expectTextNode Node.create(text: ''),         Node, '')   .to.not.throw()
+            expect(() -> expectTextNode Node.create(text: 1),          Node, 1)   .to.not.throw()
+            expect(() -> expectTextNode Node.create(text: true),       Node, true).to.not.throw()
+            expect(() -> expectTextNode Node.create(text: () -> ''),   Node, '')  .to.not.throw()
+            expect(() -> expectTextNode Node.create(text: () -> 1),    Node, 1)   .to.not.throw()
+            expect(() -> expectTextNode Node.create(text: () -> true), Node, true).to.not.throw()
 
 
 
+
+#    000   000  00000000  000   000        000   000   0000000   0000000    00000000
+#    0000  000  000       000 0 000        0000  000  000   000  000   000  000     
+#    000 0 000  0000000   000000000        000 0 000  000   000  000   000  0000000 
+#    000  0000  000       000   000        000  0000  000   000  000   000  000     
+#    000   000  00000000  00     00        000   000   0000000   0000000    00000000
 
 describe 'new Node', () ->
 
-    it "should return a valid text node, if cfg = 'text'", () ->
-        expectValidTextNode new Node('text'), Node, 'text'
+    describe 'init', () ->
 
-    it "should return a valid text node, if cfg = Text", () ->
-        expectValidTextNode new Node(getText('text')), Node, 'text'
+        it "should return a valid text node, if cfg = 'text'", () ->
+            expectTextNode new Node('text'), Node, 'text'
 
-    it "should return a valid text node, if cfg.text = 'text'", () ->
-        expectValidTextNode new Node(text: 'text'), Node, 'text'
+        it "should return a valid text node, if cfg = Text", () ->
+            expectTextNode new Node(getText('text')), Node, 'text'
 
-    it "should return a valid text node, if cfg.tag = Text", () ->
-        expectValidTextNode new Node(tag: getText('text')), Node, 'text'
+        it "should return a valid text node, if cfg.text = 'text'", () ->
+            expectTextNode new Node(text: 'text'), Node, 'text'
 
-    it "should return a valid tag node, if cfg = HTMLELement", () ->
-        expectValidTagNode new Node(getTag('div')), Node, 'div'
+        it "should return a valid text node, if cfg.tag = Text", () ->
+            expectTextNode new Node(tag: getText('text')), Node, 'text'
 
-    it "should return a valid tag node, if cfg.tag = 'div'", () ->
-        expectValidTagNode new Node(tag:'div'), Node, 'div'
+        it "should return a valid tag node, if cfg = HTMLELement", () ->
+            expectTagNode new Node(getTag('div')), Node, 'div'
 
-    it "should return a valid tag node, if cfg.tag = HTMLELement", () ->
-        expectValidTagNode new Node(tag: getTag('div')), Node, 'div'
+        it "should return a valid tag node, if cfg.tag = 'div'", () ->
+            expectTagNode new Node(tag:'div'), Node, 'div'
 
-    it "should throw an error, if cfg = null", () ->
-        expect(() -> new Node()).to.throw()
+        it "should return a valid tag node, if cfg.tag = HTMLELement", () ->
+            expectTagNode new Node(tag: getTag('div')), Node, 'div'
 
-    it "should throw an error, if neither tag nor text are set", () ->
-        expect(() -> new Node {}).to.throw()
+    describe 'init error', () ->
+        it "should throw an error, if cfg = null", () ->
+            expect(() -> new Node()).to.throw()
 
-    it "should throw an error, if cfg.tag is invalid", () ->
-        expect(() -> new Node tag: 1).to.throw()
-        expect(() -> new Node tag: true).to.throw()
-        expect(() -> new Node tag: {}).to.throw()
-        expect(() -> new Node tag: []).to.throw()
-        expect(() -> new Node tag: () ->).to.throw()
-        expect(() -> new Node tag: Node).to.throw()
+        it "should throw an error, if neither tag nor text are set", () ->
+            expect(() -> new Node {}).to.throw()
 
-    it "should throw an error, if cfg.text is invalid", () ->
-        expect(() -> new Node text: null).to.throw()
-        expect(() -> new Node text: {}).to.throw()
-        expect(() -> new Node text: []).to.throw()
-        expect(() -> new Node text: () ->).to.throw()
-        expect(() -> new Node text: () -> {}).to.throw()
-        expect(() -> new Node text: () -> []).to.throw()
+        it "should throw an error, if cfg.tag is invalid", () ->
+            expect(() -> new Node tag: 1).to.throw()
+            expect(() -> new Node tag: true).to.throw()
+            expect(() -> new Node tag: {}).to.throw()
+            expect(() -> new Node tag: []).to.throw()
+            expect(() -> new Node tag: () ->).to.throw()
+            expect(() -> new Node tag: Node).to.throw()
 
-    it "should not throw an error, if cfg.text is valid", () ->
-        expect(() -> expectValidTextNode new Node(text: ''),         Node, '')   .to.not.throw()
-        expect(() -> expectValidTextNode new Node(text: 1),          Node, 1)   .to.not.throw()
-        expect(() -> expectValidTextNode new Node(text: true),       Node, true).to.not.throw()
-        expect(() -> expectValidTextNode new Node(text: () -> ''),   Node, '')  .to.not.throw()
-        expect(() -> expectValidTextNode new Node(text: () -> 1),    Node, 1)   .to.not.throw()
-        expect(() -> expectValidTextNode new Node(text: () -> true), Node, true).to.not.throw()
+        it "should throw an error, if cfg.text is invalid", () ->
+            expect(() -> new Node text: null).to.throw()
+            expect(() -> new Node text: {}).to.throw()
+            expect(() -> new Node text: []).to.throw()
+            expect(() -> new Node text: () ->).to.throw()
+            expect(() -> new Node text: () -> {}).to.throw()
+            expect(() -> new Node text: () -> []).to.throw()
 
-    it "should create a attr title = 'my title'", () ->
-        cfg =
-            tag:   'div'
-            title: 'my title'
-        expectValidTagNode node = new Node(cfg), Node, 'div'
-        expectAttr node, 'title', 'my title'
+        it "should not throw an error, if cfg.text is valid", () ->
+            expect(() -> expectTextNode new Node(text: ''),         Node, '')   .to.not.throw()
+            expect(() -> expectTextNode new Node(text: 1),          Node, 1)   .to.not.throw()
+            expect(() -> expectTextNode new Node(text: true),       Node, true).to.not.throw()
+            expect(() -> expectTextNode new Node(text: () -> ''),   Node, '')  .to.not.throw()
+            expect(() -> expectTextNode new Node(text: () -> 1),    Node, 1)   .to.not.throw()
+            expect(() -> expectTextNode new Node(text: () -> true), Node, true).to.not.throw()
 
-    it "should create a bool attr disabled = true", () ->
-        cfg =
-            tag:      'div'
-            disabled: true
-        expectValidTagNode node = new Node(cfg), Node, 'div'
-        expectBoolAttr node, 'disabled', true
+    describe 'with attr', () ->
 
-    it "should create a bool attr disabled = false", () ->
-        cfg =
-            tag:      'div'
-            disabled: false
-        expectValidTagNode node = new Node(cfg), Node, 'div'
-        expectBoolAttr node, 'disabled', false
+        it "should create a attr title = 'my title'", () ->
+            cfg = tag: 'div', title: 'my title'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectAttr node, 'title', 'my title'
 
-    it "should remove a bool attr disabled = undefined", () ->
-        cfg =
-            tag:      'div'
-            disabled: undefined
-        expectValidTagNode node = new Node(cfg), Node, 'div'
-        expectBoolAttr node, 'disabled', undefined
+    describe 'with bool', () ->
+
+        it "should create a bool attr disabled = true", () ->
+            cfg = tag: 'div', disabled: true
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectBoolAttr node, 'disabled', true
+
+        it "should create a bool attr disabled = false", () ->
+            cfg = tag: 'div', disabled: false
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectBoolAttr node, 'disabled', false
+
+        it "should remove a bool attr disabled = undefined", () ->
+            cfg = tag: 'div', disabled: undefined
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectBoolAttr node, 'disabled', undefined
+
+    describe 'with tag children', () ->
+
+        it "should add a child tag node if children = [tag: 'div']", () ->
+            cfg = tag: 'div', children: [tag: 'div']
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], Node, 'div'
+
+        it "should add a child tag node with class MyExtendedNode if children = [{tag: 'div', clazz:MyExtendedNode}]", () ->
+            cfg = tag: 'div', children: [{tag: 'div', clazz:MyExtendedNode}]
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], MyExtendedNode, 'div'
+
+        it "should add a child tag node if children = [HTMLElement]", () ->
+            cfg = tag: 'div', children: [getTag 'div']
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], Node, 'div'
+
+        it "should add a child tag node if children = [tag:HTMLElement]", () ->
+            cfg = tag: 'div', children: [tag:getTag 'div']
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], Node, 'div'
+
+        it "should add a child tag node with class MyExtendedNode if children = [{tag: HTMLElement, clazz:MyExtendedNode}]", () ->
+            cfg = tag: 'div', children: [{tag: getTag('div'), clazz:MyExtendedNode}]
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], MyExtendedNode, 'div'
+
+    describe 'with tag child', () ->
+        it "should add a child tag node if child = tag: 'div'", () ->
+            cfg = tag: 'div', child: tag: 'div'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], Node, 'div'
+
+        it "should add a child tag node if child = HTMLElement", () ->
+            cfg = tag: 'div', child: getTag 'div'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], Node, 'div'
+
+        it "should add a child tag node if child = tag: HTMLElement", () ->
+            cfg = tag: 'div', child: tag: getTag 'div'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTagNode node.children[0], Node, 'div'
+
+     describe 'with text children', () ->
+
+        it "should add a child text node if children = 'my text'", () ->
+            cfg = tag: 'div', children: 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if children = ['my text']", () ->
+            cfg = tag: 'div', children: ['my text']
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if children = [Text]", () ->
+            cfg = tag: 'div', children: [getText 'my text']
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if children = [text:'my text']", () ->
+            cfg = tag: 'div', children: [text:'my text']
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node with class MyExtendedNode if children = [{text:'my text', clazz:MyExtendedNode}]", () ->
+            cfg = tag: 'div', children: [text:'my text', clazz:MyExtendedNode]
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], MyExtendedNode, 'my text'
+
+        it "should add a child text node with class MyExtendedNode if children = [{tag:Text, clazz:MyExtendedNode}]", () ->
+            cfg = tag: 'div', children: [tag:getText('my text'), clazz:MyExtendedNode]
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], MyExtendedNode, 'my text'
+
+    describe 'with text', () ->
+
+        it "should add a child text node if text = 'my text'", () ->
+            cfg = tag: 'div', text: 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if text = Text", () ->
+            cfg = tag: 'div', text: getText 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+    describe 'with text child', () ->
+
+        it "should add a child text node if child = 'my text'", () ->
+            cfg = tag: 'div', child: 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if child = text:'my text'", () ->
+            cfg = tag: 'div', child: text: 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if child = Text", () ->
+            cfg = tag: 'div', child: getText 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
+
+        it "should add a child text node if child = tag: Text", () ->
+            cfg = tag: 'div', child: tag: getText 'my text'
+            expectTagNode node = new Node(cfg), Node, 'div'
+            expectTextNode node.children[0], Node, 'my text'
 
 
 
+
+
+
+
+
+#    000  000   000   0000000  000000000   0000000   000   000   0000000  00000000
+#    000  0000  000  000          000     000   000  0000  000  000       000     
+#    000  000 0 000  0000000      000     000000000  000 0 000  000       0000000 
+#    000  000  0000       000     000     000   000  000  0000  000       000     
+#    000  000   000  0000000      000     000   000  000   000   0000000  00000000
 
 describe 'node instance', () ->
 
@@ -257,12 +387,11 @@ describe 'node instance', () ->
             parent = getTag 'div'
             node   = new Node tag:'div'
             parent.appendChild getTag 'div'
-            parent.appendChild prev = getTag 'div'
+            parent.appendChild prev = getTag 'div' 
             parent.appendChild getTag 'div'
             node.behind prev
             expect(parent.childNodes[2]).to.equal node.view
             expect(parent.childNodes.length).to.equal 4
-
 
         it 'should append the nodes view behind the dom if the dom is the last child', () ->
             parent = getTag 'div'
@@ -274,13 +403,11 @@ describe 'node instance', () ->
             expect(parent.childNodes[3]).to.equal node.view
             expect(parent.childNodes.length).to.equal 4
 
-
         it 'should throw an error if the doms parent is controlled by a node', () ->
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild prev = getTag 'div'
             expect(() -> node.behind prev).to.throw()
-
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
@@ -302,13 +429,11 @@ describe 'node instance', () ->
             expect(parent.childNodes[1]).to.equal node.view
             expect(parent.childNodes.length).to.equal 3
 
-
         it 'should throw an error if the doms parent is controlled by a node', () ->
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild next = getTag 'div'
             expect(() -> node.before next).to.throw()
-
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
@@ -329,13 +454,11 @@ describe 'node instance', () ->
             expect(parent.childNodes[0]).to.equal node.view
             expect(parent.childNodes.length).to.equal 1
 
-
         it 'should throw an error if the doms parent is controlled by a node', () ->
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild old = getTag 'div'
             expect(() -> node.replace old).to.throw()
-
 
         it 'should not throw an error for the doms parent if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
@@ -344,7 +467,6 @@ describe 'node instance', () ->
             parent.view.appendChild old = getTag 'div'
             expect(() -> node.replace old).to.not.throw()
             Node.CHECK_DOM = true
-
 
         it 'should throw an error if the dom is controlled by a node', () ->
             parent = getTag 'div'
