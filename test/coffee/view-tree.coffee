@@ -86,3 +86,6 @@ describe 'TreeOne', () ->
         it 'should return a mapped node', () ->
             expectNode create(tag: 'mock'), MockNode
             expectTag  create(tag: 'mock'), 'mock-node'
+
+
+

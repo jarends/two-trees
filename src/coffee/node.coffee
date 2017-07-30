@@ -1,60 +1,3 @@
-__id__ = 0
-
-
-TEXT_KIND = 0
-NODE_KIND = 1
-
-
-COMP_CFG_ERROR = 'Cfg for creating a node must either be a string or an object containing a tag property as not empty string or a node class.'
-VIEW_CFG_ERROR = 'Cfg for creating a view must either be a string or an object containing a tag property as not empty string'
-
-
-isBool   = (value) -> typeof value == 'boolean'
-isNumber = (value) -> typeof value == 'number'
-isString = (value) -> typeof value == 'string' or value == value + ''
-isObject = (value) -> typeof value == 'object'
-isFunc   = (value) -> typeof value == 'function'
-isHTML   = (value) -> value instanceof HTMLElement
-isNot    = (value) -> value == null or value == undefined
-isSimple = (value) ->
-    (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
-
-
-
-
-normalizeName = (name) ->
-    name.replace /[A-Z]/g, (name) ->
-        '-' + name.toLowerCase()
-
-
-
-
-normalizeEvent = (type) ->
-    type = type.slice 2
-    type.charAt(0).toLowerCase() + normalizeName type.slice(1)
-
-
-
-
-throwNodeCfgError = (cfg) ->
-    throw new Error COMP_CFG_ERROR + ' cfg = ' + getCfgJson cfg
-
-
-throwViewCfgError = (cfg) ->
-    throw new Error VIEW_CFG_ERROR + ' cfg = ' + getCfgJson cfg
-
-
-
-
-getCfgJson = (cfg) ->
-    try
-        c = JSON.stringify cfg
-    catch
-    c + ''
-
-
-
-
 ###
     cfg as string || boolean || number
         node is a text node
@@ -64,23 +7,31 @@ getCfgJson = (cfg) ->
             string
                 which is mapped to an component class
                 the node name
-            node class
-            node instance
+            HTMLElement
+            node class    -> render only
+            node instance -> render only
+            undefined/null if text is defined
 
     cfg as node instance # invalid in create
 
-    cfg as func
+    cfg as HTMLElement -> in constructor only
+
+    cfg as func -> has to return a valid node cfg
 
 
     cfg =
         tag:
-        text:
-        style:
-        bind
         clazz:
+        bind:
+        inject:
+        text:
+        className:
+        style:
         child:
         children:
         event handlers starting with 'on', camel case converts to kebab case
+
+
 
 
     update:
@@ -94,66 +45,120 @@ getCfgJson = (cfg) ->
 
 
 
+#    000   000  000000000  000  000       0000000
+#    000   000     000     000  000      000     
+#    000   000     000     000  000      0000000 
+#    000   000     000     000  000           000
+#     0000000      000     000  0000000  0000000 
+
+getOrCall   = (value) -> if isFunc(value) then value() else value
+isBool      = (value) -> typeof value == 'boolean'
+isNumber    = (value) -> typeof value == 'number'
+isString    = (value) -> typeof value == 'string' or value == value + ''
+isObject    = (value) -> typeof value == 'object'
+isFunc      = (value) -> typeof value == 'function'
+isDom       = (value) -> value instanceof HTMLElement
+isDomText   = (value) -> value instanceof Text
+isNot       = (value) -> value == null or value == undefined
+isSimple    = (value) -> (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
+extendsNode = (value) -> isFunc(value) and ((value.prototype instanceof Node) or value == Node)
+
+
+normalizeName = (name) ->
+    name.replace /[A-Z]/g, (name) ->
+        '-' + name.toLowerCase()
+
+
+normalizeEvent = (type) ->
+    type = type.slice 2
+    type.charAt(0).toLowerCase() + normalizeName type.slice(1)
+
+
+
+
+#    000   000   0000000   0000000    00000000
+#    0000  000  000   000  000   000  000
+#    000 0 000  000   000  000   000  0000000
+#    000  0000  000   000  000   000  000
+#    000   000   0000000   0000000    00000000
 
 class Node
 
 
-    constructor: (cfg) ->
-        @register(cfg)
-        #console.log 'ctx: ', @ctx
+    @DEFAULT_CLASS = @
+    @CHECK_DOM     = true
+    @TEXT_KIND     = 0
+    @NODE_KIND     = 1
 
 
-    register: (@cfg) ->
-        @keep = false
-        if not @__id__
-            @__id__ = ++__id__
-            nodeMap[@__id__] = @
-        @__id__
+    constructor: (@cfg) ->
+        @keep  = @keep  == true or false
+        @valid = @valid == true or false
+        @init()
 
+    # internal node configuration
+    init: () -> init @
 
+    # add nodes view to dom
+    behind:  (dom) -> behind  @, dom
+    before:  (dom) -> before  @, dom
+    replace: (dom) -> replace @, dom
 
-    dispose: () -> null
+    # remove nodes view from dom
+    remove: () -> remove  @
 
+    # direct dom manipulation
+    addChild:      (child)        -> addChild      @, child
+    addChildAt:    (child, index) -> addChildAt    @, child, index
+    removeChild:   (child)        -> removeChild   @, child
+    removeChildAt: (index)        -> removeChildAt @, index
+    updateNow:     ()             -> updateNow     @
+    updateKeyNow:  (name, value)  -> updateKeyNow  @, name, value
 
-    onMount: () -> null
+    # raf timed dom manipulation
+    update:    ()            -> update    @
+    updateKey: (name, value) -> updateKey @, name, value
 
+    # override
+    render: () -> @cfg
 
-    onUnmount: () -> @keep
+    # override
+    dispose: () ->
 
+    clone: () -> clone @
 
-    needsUpdate: () -> true
-    canUpdate:   (@cfg) -> true
-    update:      () => update @
-    render:      () -> @cfg
+    # callbacks
 
+    # node added to parent
+    onAdded: () ->
 
-    onAdded:   () ->
-
-
+    # node removed from parent
     onRemoved: () ->
 
+    # nodes view added to dom
+    onMount: () ->
 
-    add:       (child) ->
-    addAt:     (child, index) ->
-    remove:    (child) ->
-    removeAt:  (index) ->
+    # nodes view removed from dom
+    onUnmount: () -> @keep
+
+    # nodes view  was updated
+    onUpdated: () ->
+
+    # a key on nodes view was updated
+    onKeyUpdated: () ->
 
 
 
 
-#    00000000   00000000    0000000   00000000    0000000
-#    000   000  000   000  000   000  000   000  000     
-#    00000000   0000000    000   000  00000000   0000000 
-#    000        000   000  000   000  000             000
-#    000        000   000   0000000   000        0000000 
+#    000000000  00000000   00000000  00000000
+#       000     000   000  000       000     
+#       000     0000000    0000000   0000000 
+#       000     000   000  000       000     
+#       000     000   000  00000000  00000000
 
-tagMap     = {}
-rootMap    = {}
-nodeMap    = {}
-dirtyMap   = {}
-cleanMap   = {}
-dirty      = false
-rafTimeout = null
+
+classMap = {}
+domList  = []
 
 
 
@@ -165,14 +170,13 @@ rafTimeout = null
 #    000   000  000   000  000      
 
 map = (tag, clazz, overwrite = false) ->
-    if isNot(tagMap[tag]) or overwrite
-        tagMap[tag] = clazz
-    null
+    if classMap[tag] and not overwrite
+        throw new Error "A class is already mapped for tag #{tag}."
+    classMap[tag] = clazz
 
 
 
-
-
+    
 #    000   000  000   000  00     00   0000000   00000000 
 #    000   000  0000  000  000   000  000   000  000   000
 #    000   000  000 0 000  000000000  000000000  00000000 
@@ -180,8 +184,7 @@ map = (tag, clazz, overwrite = false) ->
 #     0000000   000   000  000   000  000   000  000      
 
 unmap = (tag) ->
-    delete tagMap[tag]
-    null
+    delete classMap[tag]
 
 
 
@@ -192,181 +195,138 @@ unmap = (tag) ->
 #    000       000   000  000       000   000     000     000     
 #     0000000  000   000  00000000  000   000     000     00000000
 
-create = (cfg, root = null, inject = null) ->
-    #console.log 'ViewTree.create: ', cfg
-    throwNodeCfgError cfg if isNot cfg
-    tag = cfg.tag
-    if isSimple(cfg) or (not tag and (isSimple(cfg.text) or isFunc(cfg.text)))
-        clazz = ViewTree.DEFAULT_CLASS
-    else
-        if isFunc(tag) and ((tag.prototype instanceof Node) or tag == Node)
-            clazz = cfg.tag
+create = (cfg) ->
+    if isNot cfg
+        throw new Error "A node can't be created from empty cfg."
+    if not extendsNode clazz = cfg.clazz
+        if not extendsNode clazz = cfg.tag
+            clazz = null
+            tag   = cfg.nodeName.toLowerCase() if isDom cfg
+            clazz = classMap[tag] if isString tag = tag or cfg.tag
+    clazz = clazz or Node.DEFAULT_CLASS
+    new clazz cfg
+
+
+
+
+#    000  000   000  000  000000000
+#    000  0000  000  000     000   
+#    000  000 0 000  000     000   
+#    000  000  0000  000     000   
+#    000  000   000  000     000   
+
+init = (node) ->
+    if isNot cfg = node.render()
+        throw new Error "A node can't be initialized with empty cfg."
+    switch true
+        when isSimple  cfg then initTextNode    node, node.cfg = text: cfg + ''
+        when isDom     cfg then initTagFromDom  node, null, cfg
+        when isDomText cfg then initTextFromDom node, null, cfg
         else
-            throwNodeCfgError cfg if not isString(tag) or tag == ''
-            clazz = tagMap[tag] or ViewTree.DEFAULT_CLASS
+            tag = cfg.tag
+            switch true
+                when isNot     tag then initTextNode    node, cfg
+                when isString  tag then initTagNode     node, cfg
+                when isDom     tag then initTagFromDom  node, cfg, tag
+                when isDomText tag then initTextFromDom node, cfg, tag
+                else
+                    if extendsNode tag
+                        throw new Error "A tag must be a string or a HTMLElement, you specified a Node class."
+                    throw new Error "A tag must be a string or a HTMLElement."
+    node
 
-    node = createNode clazz, cfg, inject
-    createView node, node.render()
 
-    if root != null #TODO: node.render() is called twice in this case - bad!!!
-        render(node, root)
 
-    else if false #TODO: check, if we really want this
-        if isSimple cfg
-            updateText node, cfg
-        else
-            updateProperties node, cfg
+#    000  000   000  000  000000000        000000000  00000000  000   000  000000000
+#    000  0000  000  000     000              000     000        000 000      000   
+#    000  000 0 000  000     000              000     0000000     00000       000   
+#    000  000  0000  000     000              000     000        000 000      000   
+#    000  000   000  000     000              000     00000000  000   000     000   
 
-        node.onMount()
+initTextNode = (node, cfg) ->
+    text = cfg.text
+    text = text() if isFunc text
+    if not isSimple text
+        throw new Error "The text for a text node must be a string, number or bool."
+    node.text = text
+    node.tag  = cfg.tag  = null
+    node.view = document.createTextNode text
     node
 
 
 
 
-#     0000000  00000000   00000000   0000000   000000000  00000000        000   000   0000000   0000000    00000000
-#    000       000   000  000       000   000     000     000             0000  000  000   000  000   000  000     
-#    000       0000000    0000000   000000000     000     0000000         000 0 000  000   000  000   000  0000000 
-#    000       000   000  000       000   000     000     000             000  0000  000   000  000   000  000     
-#     0000000  000   000  00000000  000   000     000     00000000        000   000   0000000   0000000    00000000
+#    000  000   000  000  000000000        000000000   0000000    0000000 
+#    000  0000  000  000     000              000     000   000  000      
+#    000  000 0 000  000     000              000     000000000  000  0000
+#    000  000  0000  000     000              000     000   000  000   000
+#    000  000   000  000     000              000     000   000   0000000 
 
-createNode = (clazz, cfg, inject) ->
-    inject = cfg.__i__ or inject
-    return new clazz cfg if not inject
-
-    #console.log 'INJECT: ', clazz, inject
-
-    p = clazz.prototype
-    m = {}
-    for key, value of inject
-        m[key] = p[key]
-        p[key] = value
-        #console.log 'INJECT set value: ', key, value
-
-    node       = new clazz cfg
-    node.__i__ = inject
-
-    for key, value of inject
-        node[key] = value
-        p[key]    = m[key]
+initTagNode = (node, cfg) ->
+    node.tag  = tag = cfg.tag
+    node.view = document.createElement tag
+    updateProps node, cfg
     node
 
 
 
 
-#     0000000  00000000   00000000   0000000   000000000  00000000        000   000  000  00000000  000   000
-#    000       000   000  000       000   000     000     000             000   000  000  000       000 0 000
-#    000       0000000    0000000   000000000     000     0000000          000 000   000  0000000   000000000
-#    000       000   000  000       000   000     000     000                000     000  000       000   000
-#     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
+#    000000000  00000000  000   000  000000000        00000000  00000000    0000000   00     00        0000000     0000000   00     00
+#       000     000        000 000      000           000       000   000  000   000  000   000        000   000  000   000  000   000
+#       000     0000000     00000       000           000000    0000000    000   000  000000000        000   000  000   000  000000000
+#       000     000        000 000      000           000       000   000  000   000  000 0 000        000   000  000   000  000 0 000
+#       000     00000000  000   000     000           000       000   000   0000000   000   000        0000000     0000000   000   000
 
-createView = (node, cfg) ->
-    throwViewCfgError(cfg) if isNot cfg
-    text = if isFunc(cfg.text) then cfg.text() else cfg.text
-    if isSimple(cfg) or (not cfg.tag and (isSimple(text)))
-        node.tag  = undefined
-        node.text = if isNot(text) then cfg else text
-        node.view = document.createTextNode node.text
-    else
-        throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
-        node.tag  = tag
-        node.view =  document.createElement tag
-    node.view
-
-
-
-
-#    00000000   00000000  000   000  0000000    00000000  00000000 
-#    000   000  000       0000  000  000   000  000       000   000
-#    0000000    0000000   000 0 000  000   000  0000000   0000000  
-#    000   000  000       000  0000  000   000  000       000   000
-#    000   000  00000000  000   000  0000000    00000000  000   000
-
-render = (node, root) ->
-    #console.log 'ViewTree.render: ', node, root
-    cfg = node.render()
-    if not node.view
-        createView node, cfg
-
-    root.appendChild(node.view)
-
-    node.parent = null
-    node.depth  = 0
-
-    if isSimple cfg
-        updateText node, cfg
-    else
-        updateProperties node, cfg
-
-    node.onMount()
-    null
-
-
-
-
-#    00000000   00000000  00     00   0000000   000   000  00000000
-#    000   000  000       000   000  000   000  000   000  000     
-#    0000000    0000000   000000000  000   000   000 000   0000000 
-#    000   000  000       000 0 000  000   000     000     000     
-#    000   000  00000000  000   000   0000000       0      00000000
-
-remove = (nodeOrRoot) ->
-
-
-
-
-#    000   000  00000000   0000000     0000000   000000000  00000000
-#    000   000  000   000  000   000  000   000     000     000     
-#    000   000  00000000   000   000  000000000     000     0000000 
-#    000   000  000        000   000  000   000     000     000     
-#     0000000   000        0000000    000   000     000     00000000
-
-update = (node) ->
-    #console.log 'UPDATE: ', node.__id__
-    id = node?.__id__
-    if not id
-        throw new Error "DOM ERROR: can't update node. Node doesn't exist. cfg = " + getCfgJson(node?.cfg or null)
-
-    if not dirty
-        window.cancelAnimationFrame rafTimeout
-        rafTimeout = window.requestAnimationFrame updateNow
-
-    dirtyMap[id] = true
-    dirty        = true
-    null
-
-
-
-
-#    000   000  00000000   0000000     0000000   000000000  00000000        000   000   0000000   000   000
-#    000   000  000   000  000   000  000   000     000     000             0000  000  000   000  000 0 000
-#    000   000  00000000   000   000  000000000     000     0000000         000 0 000  000   000  000000000
-#    000   000  000        000   000  000   000     000     000             000  0000  000   000  000   000
-#     0000000   000        0000000    000   000     000     00000000        000   000   0000000   00     00
-
-updateNow = () ->
-    #console.log 'UPDATE NOW: '
-    window.cancelAnimationFrame rafTimeout
-    dirty    = false
-    cleanMap = {}
-    nodes    = []
-    #TODO: sort by depth to update top down
-    (nodes.push(n) if n = nodeMap[id]) for id of dirtyMap
-    nodes.sort (a, b) -> a.depth - b.depth
-    for node in nodes
-        continue if not node.view or not nodeMap[node.__id__] or cleanMap[node.__id__]
-        cfg = node.render()
-
-        #if node.constructor.name == 'Check'
-        #console.log 'update node now: ', node.constructor.name, node.depth, node.__id__, node.view, cleanMap
-
-        if isNot(node.tag) and isNot(cfg.tag)
-            updateText node, cfg
-        else if not (node.tag == cfg.tag or node.constructor == cfg.tag)
-            replaceChild node, cfg
+initTextFromDom = (node, cfg, dom) ->
+    checkDom dom if Node.CHECK_DOM
+    node.text = dom.nodeValue
+    node.tag  = null
+    node.view = dom
+    if cfg
+        text = cfg.text
+        if not isNot text
+            text = text() if isFunc text
+            if not isSimple text
+                throw new Error "The text for a text node must be a string, number or bool."
+            node.text = dom.nodeValue = text
         else
-            updateProperties node, cfg
-    dirtyMap = {}
-    null
+            cfg.text = node.text
+    else
+        node.cfg = text: node.text
+    node
+
+
+
+
+#    000000000   0000000    0000000         00000000  00000000    0000000   00     00        0000000     0000000   00     00
+#       000     000   000  000              000       000   000  000   000  000   000        000   000  000   000  000   000
+#       000     000000000  000  0000        000000    0000000    000   000  000000000        000   000  000   000  000000000
+#       000     000   000  000   000        000       000   000  000   000  000 0 000        000   000  000   000  000 0 000
+#       000     000   000   0000000         000       000   000   0000000   000   000        0000000     0000000   000   000
+
+initTagFromDom = (node, cfg, dom) ->
+    checkDom dom if Node.CHECK_DOM
+    node.tag  = dom.nodeName.toLowerCase()
+    node.view = dom
+    if cfg and isString(cfg.tag) and cfg.tag != node.tag
+        throw new Error "A cfg and the dom element must have the same tag. Got #{cfg.tag} and #{node.tag}"
+    cfg     = cfg or node.cfg = {}
+    cfg.tag = node.tag
+    node
+
+
+
+
+#     0000000  000   000  00000000   0000000  000   000        0000000     0000000   00     00
+#    000       000   000  000       000       000  000         000   000  000   000  000   000
+#    000       000000000  0000000   000       0000000          000   000  000   000  000000000
+#    000       000   000  000       000       000  000         000   000  000   000  000 0 000
+#     0000000  000   000  00000000   0000000  000   000        0000000     0000000   000   000
+
+checkDom = (dom) ->
+    if domList.indexOf(dom) > -1
+        throw new Error 'Dom element already controlled by another node.'
+    domList.push dom
 
 
 
@@ -378,13 +338,14 @@ updateNow = () ->
 #     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000   
 
 updateText = (node, cfg) ->
-    cleanMap[node.__id__] = true
-    text = if isFunc(cfg.text) then cfg.text() else if isString(cfg) then cfg else cfg.text
-    if node.text != text
-        node.cfg            = cfg
-        node.text           = text
-        node.view.nodeValue = text
-    null
+    text = cfg.text
+    if not isNot text
+        text = text() if isFunc text
+        if not isSimple text
+            throw new Error "The text for a text node must be a string, number or bool."
+    else
+        cfg.text = node.text
+
 
 
 
@@ -395,9 +356,8 @@ updateText = (node, cfg) ->
 #    000   000  000        000   000  000   000     000     000             000        000   000  000   000  000             000
 #     0000000   000        0000000    000   000     000     00000000        000        000   000   0000000   000        0000000 
 
-updateProperties = (node, cfg) ->
-    cleanMap[node.__id__] = true
-    #console.log 'UPDATE PROPS: ', node.__id__, node.view
+updateProps = (node, cfg) ->
+    console.log 'updateProps: ', node, cfg
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
@@ -412,6 +372,7 @@ updateProperties = (node, cfg) ->
         updateChildren node, cfg.children
 
     delete propMap.tag
+    delete propMap.clazz
     delete propMap.__i__
     delete propMap.keep
     delete propMap.text
@@ -435,7 +396,7 @@ updateProperties = (node, cfg) ->
                     updateBool node, value, name
                 else
                     updateAttr node, value, name
-    null
+    node
 
 
 
@@ -478,10 +439,15 @@ updateBool = (node, value, name) ->
     node.attrs[name] = node.view[name]
     return if node.attrs[name] == value
     view = node.view
-    if isNot(value) or value == false
+    if isNot value
         view.removeAttribute name
         view[name] = false
         delete node.attrs[name]
+    else if  value == false
+        view.removeAttribute name
+        view[name]       = false
+        node.attrs[name] = false
+        console.log 'set to false: ', view[name]
     else
         view.setAttribute name, ''
         view[name]       = true
@@ -784,6 +750,52 @@ disposeNode = (node) ->
 
 
 
+behind        = (node, dom) ->
+before        = (node, dom) ->
+replace       = (node, dom) ->
+remove        = (node) ->
+addChild      = (node, child) ->
+addChildAt    = (node, child, index) ->
+removeChild   = (node, index) ->
+removeChildAt = (node, index) ->
+updateNow     = (node) ->
+updateKeyNow  = (node, name, value) ->
+update        = (node) ->
+updateKey     = (node, name, value) ->
+disposeNode   = () ->
+clone         = () ->
+
+
+
+
+
+
+
+
+#     0000000  000000000   0000000   000000000  000   0000000
+#    000          000     000   000     000     000  000     
+#    0000000      000     000000000     000     000  000     
+#         000     000     000   000     000     000  000     
+#    0000000      000     000   000     000     000   0000000
+
+Node.create      = create
+Node.map         = map
+Node.unmap       = unmap
+
+Node.getOrCall   = getOrCall
+Node.isBool      = isBool
+Node.isNumber    = isNumber
+Node.isString    = isString
+Node.isObject    = isObject
+Node.isFunc      = isFunc
+Node.isDom       = isDom
+Node.isDomText   = isDomText
+Node.isNot       = isNot
+Node.isSimple    = isSimple
+Node.extendsNode = extendsNode
+
+
+
 
 
 
@@ -838,31 +850,15 @@ if typeof Object.assign == 'undefined'
 
 
 
-
-
-
-
-ViewTree =
-    Node:             Node
-    DEFAULT_CLASS:    Node
-    HANDLE_CTX:       true
-    HANDLE_DATA_TREE: true
-    COMP_CFG_ERROR:   COMP_CFG_ERROR
-    VIEW_CFG_ERROR:   VIEW_CFG_ERROR
-    map:              map
-    unmap:            unmap
-    create:           create
-    render:           render
-    remove:           remove
-    update:           update
-    updateNow:        updateNow
-
-
-
+#    00000000  000   000  00000000    0000000   00000000   000000000
+#    000        000 000   000   000  000   000  000   000     000   
+#    0000000     00000    00000000   000   000  0000000       000   
+#    000        000 000   000        000   000  000   000     000   
+#    00000000  000   000  000         0000000   000   000     000   
 
 if typeof module != 'undefined'
-    module.exports = ViewTree
+    module.exports = Node
 if typeof window != 'undefined'
-    window.ViewTree = ViewTree
+    window.Node = Node
 else
-    this.ViewTree = ViewTree
+    this.Node = Node
