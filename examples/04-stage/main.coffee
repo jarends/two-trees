@@ -23,7 +23,7 @@ app = new Node
 
 app.appendTo document.querySelector '.app'
 
-console.log node
+console.log app
 
 
 #console.log new Node tag: document.querySelector '.app'
