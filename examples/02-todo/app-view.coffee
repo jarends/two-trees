@@ -156,13 +156,12 @@ class AppView extends CompNode
                     removeTask: @removeTask
         ,
             tag:      'p'
-            children: [
+            child:
                 text: () => (@data.numTotal - @data.numDone) + ' items left'
                 bindings: [
                     [@data, 'numDone']
                     [@data, 'numTotal']
                 ]
-            ]
         ,
             tag:      'p'
             children: [
@@ -177,7 +176,7 @@ class AppView extends CompNode
         ,
             tag:      'button'
             style:    () => "display: #{if @tree.root.numDone > 0 then 'inline-block' else 'none'};"
-            children: 'clear completed'
+            text:     'clear completed'
             onClick:  () => @clearCompleted()
             bindings: [
                 [@data, 'numDone']

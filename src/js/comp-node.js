@@ -17,16 +17,18 @@
       var binding, bindings, i, len;
       CompNode.__super__.register.call(this, cfg);
       this.paths = [];
-      if (!this.tree) {
-        throw new Error("Tree not injected.");
-      }
-      if (bindings = cfg.bindings) {
-        for (i = 0, len = bindings.length; i < len; i++) {
-          binding = bindings[i];
-          if (Array.isArray(binding)) {
-            this.bind(binding[0], binding[1]);
-          } else {
-            this.bind(binding);
+      if (typeof cfg === 'object') {
+        if (!this.tree) {
+          throw new Error("Tree not injected.");
+        }
+        if (bindings = cfg.bindings) {
+          for (i = 0, len = bindings.length; i < len; i++) {
+            binding = bindings[i];
+            if (Array.isArray(binding)) {
+              this.bind(binding[0], binding[1]);
+            } else {
+              this.bind(binding);
+            }
           }
         }
       }

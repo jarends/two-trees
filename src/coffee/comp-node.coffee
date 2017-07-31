@@ -12,14 +12,15 @@ class CompNode extends ViewTree.Node
         super(cfg)
 
         @paths = []
-        throw new Error "Tree not injected." if not @tree
+        if typeof cfg == 'object'
+            throw new Error "Tree not injected." if not @tree
 
-        if bindings = cfg.bindings
-            for binding in bindings
-                if Array.isArray binding
-                    @bind binding[0], binding[1]
-                else
-                    @bind binding
+            if bindings = cfg.bindings
+                for binding in bindings
+                    if Array.isArray binding
+                        @bind binding[0], binding[1]
+                    else
+                        @bind binding
         @__id__
 
 

@@ -98,6 +98,12 @@ getCfgJson = (cfg) ->
 class Node
 
 
+    @DEBUG     = true
+    @CHECK_DOM = true
+
+
+
+
     constructor: (cfg) ->
         @register(cfg)
         #console.log 'ctx: ', @ctx
@@ -109,7 +115,34 @@ class Node
             @__id__ = ++__id__
             nodeMap[@__id__] = @
         @__id__
+        injectNode @, @cfg
 
+
+    updateNow: () ->
+        cfg = @render()
+        createView @, cfg if not @view
+        if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
+            updateText @, cfg
+        else
+            updateProperties @, cfg
+
+
+    # add nodes view to dom
+    appendTo: (dom) ->
+        @updateNow() if not @view
+        append  @, dom
+
+    behind:   (dom) ->
+        @updateNow() if not @view
+        behind  @, dom
+
+    before:   (dom) ->
+        @updateNow() if not @view
+        before  @, dom
+
+    replace:  (dom) ->
+        @updateNow() if not @view
+        replace @, dom
 
 
     dispose: () -> null
@@ -148,10 +181,10 @@ class Node
 #    000        000   000   0000000   000        0000000 
 
 tagMap     = {}
-rootMap    = {}
 nodeMap    = {}
 dirtyMap   = {}
 cleanMap   = {}
+domList    = []
 dirty      = false
 rafTimeout = null
 
@@ -192,7 +225,7 @@ unmap = (tag) ->
 #    000       000   000  000       000   000     000     000     
 #     0000000  000   000  00000000  000   000     000     00000000
 
-create = (cfg, root = null, inject = null) ->
+create = (cfg, root = null) ->
     #console.log 'ViewTree.create: ', cfg
     throwNodeCfgError cfg if isNot cfg
     tag = cfg.tag
@@ -205,19 +238,12 @@ create = (cfg, root = null, inject = null) ->
             throwNodeCfgError cfg if not isString(tag) or tag == ''
             clazz = tagMap[tag] or ViewTree.DEFAULT_CLASS
 
-    node = createNode clazz, cfg, inject
+    #node = createNode clazz, cfg, inject
+    node = new clazz cfg
     createView node, node.render()
 
     if root != null #TODO: node.render() is called twice in this case - bad!!!
         render(node, root)
-
-    else if false #TODO: check, if we really want this
-        if isSimple cfg
-            updateText node, cfg
-        else
-            updateProperties node, cfg
-
-        node.onMount()
     node
 
 
@@ -248,6 +274,21 @@ createNode = (clazz, cfg, inject) ->
     for key, value of inject
         node[key] = value
         p[key]    = m[key]
+    node
+
+
+
+
+#    000  000   000        000  00000000   0000000  000000000        000   000   0000000   0000000    00000000
+#    000  0000  000        000  000       000          000           0000  000  000   000  000   000  000     
+#    000  000 0 000        000  0000000   000          000           000 0 000  000   000  000   000  0000000 
+#    000  000  0000  000   000  000       000          000           000  0000  000   000  000   000  000     
+#    000  000   000   0000000   00000000   0000000     000           000   000   0000000   0000000    00000000
+
+injectNode = (node, cfg) ->
+    if isNot(node.__i__) and cfg and cfg.__i__
+        inject    = node.__i__ = cfg.__i__
+        node[key] = value for key, value of inject
     node
 
 
@@ -292,7 +333,7 @@ render = (node, root) ->
     node.parent = null
     node.depth  = 0
 
-    if isSimple cfg
+    if isSimple(cfg) or isNot(cfg.tag)
         updateText node, cfg
     else
         updateProperties node, cfg
@@ -408,7 +449,26 @@ updateProperties = (node, cfg) ->
     if propMap.hasOwnProperty 'style'
         updateStyle node, cfg.style
 
-    if propMap.hasOwnProperty 'children'
+    if propMap.hasOwnProperty 'text'
+        text = text() if isFunc text = cfg.text
+        if isSimple text
+            updateChildren node, [text]
+
+        if Node.DEBUG
+            if cfg.hasOwnProperty 'child'
+                console.warn 'child specified while text exists: ', cfg
+            if cfg.hasOwnProperty 'children'
+                console.warn 'children specified while text exists', cfg
+
+    else if propMap.hasOwnProperty 'child'
+        child = child() if isFunc child = cfg.child
+        updateChildren node, [child]
+
+        if Node.DEBUG
+            if cfg.hasOwnProperty 'children'
+                console.warn 'children specified while text exists', cfg
+
+    else if propMap.hasOwnProperty 'children'
         updateChildren node, cfg.children
 
     delete propMap.tag
@@ -644,6 +704,9 @@ updateChildren = (node, cfgs) ->
 change = (node, cfg) ->
     needsUpdate = node.needsUpdate()
     canUpdate   = node.canUpdate(cfg)
+
+    #console.log 'change: ', node, cfg
+
     if node == cfg or node.constructor == cfg.tag
         updateProperties node, node.render() if needsUpdate and canUpdate
         replaceChild     node, node.render() if needsUpdate and not canUpdate
@@ -674,7 +737,8 @@ addChild = (node, cfg) ->
     if cfg instanceof Node
         child = cfg
     else
-        child = create cfg, null, cfg.__i__ or node.__i__
+        cfg.__i__ = node.__i__ if not cfg.__i__
+        child = create cfg
 
     cfg = child.render()
     if not child.view
@@ -685,7 +749,7 @@ addChild = (node, cfg) ->
     child.parent = node
     child.depth  = node.depth + 1
 
-    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
+    if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
         updateText child, cfg
     else
         updateProperties child, cfg
@@ -735,7 +799,8 @@ replaceChild = (child, cfg) ->
         child = cfg
         cfg   = child.render()
     else
-        child = create cfg, null, cfg.__i__ or node.__i__
+        cfg.__i__ = node.__i__ if not cfg.__i__
+        child = create cfg
 
     cfg = child.render()
     if not child.view
@@ -746,7 +811,7 @@ replaceChild = (child, cfg) ->
     child.depth  = node.depth + 1
     node.view.replaceChild child.view, view
 
-    if isSimple(cfg) or (not cfg.tag and isSimple(cfg.text))
+    if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
         updateText child, cfg
     else
         updateProperties child, cfg
@@ -781,6 +846,49 @@ disposeNode = (node) ->
     node.parent = null
     node.depth  = undefined
     null
+
+
+
+
+checkDom = (dom) ->
+    if domList.indexOf(dom) > -1
+        throw new Error 'Dom element already controlled by another node.'
+
+
+append = (node, dom) ->
+    checkDom dom if Node.CHECK_DOM
+    dom.appendChild node.view
+
+
+
+behind = (node, dom) ->
+    parent = dom.parentNode
+    next   = dom.nextSibling
+    checkDom parent if Node.CHECK_DOM
+    if next
+        parent.insertBefore node.view, next
+    else
+        parent.appendChild node.view
+
+
+before = (node, dom) ->
+    parent = dom.parentNode
+    checkDom parent if Node.CHECK_DOM
+    parent.insertBefore node.view, dom
+
+
+replace = (node, dom) ->
+    parent = dom.parentNode
+    if Node.CHECK_DOM
+        checkDom parent
+        checkDom dom
+    parent.replaceChild node.view, dom
+
+
+remove = (node) ->
+    parent = node.view.parentNode
+    checkDom parent if Node.CHECK_DOM
+    parent.removeChild node.view
 
 
 

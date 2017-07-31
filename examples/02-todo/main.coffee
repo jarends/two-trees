@@ -14,7 +14,7 @@ model = new DataTree
     numTotal: 0
     filter:   'all'
 
-
+###
 app = ViewTree.create
     tag:   AppView
     __i__:
@@ -22,6 +22,15 @@ app = ViewTree.create
 
 
 ViewTree.render app, document.querySelector '.app'
+###
+
+app = new AppView
+    tag:   AppView
+    __i__:
+        tree: model
+
+        
+app.appendTo document.querySelector '.app'
 
 
 window.model = model
