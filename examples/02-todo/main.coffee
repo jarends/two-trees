@@ -25,11 +25,10 @@ ViewTree.render app, document.querySelector '.app'
 ###
 
 app = new AppView
-    tag:   AppView
     __i__:
         tree: model
 
-        
+
 app.appendTo document.querySelector '.app'
 
 

@@ -342,7 +342,6 @@ initTagFromDom = (node, cfg, dom) ->
 checkDom = (dom) ->
     if domList.indexOf(dom) > -1
         throw new Error 'Dom element already controlled by another node.'
-    domList.push dom
 
 
 
@@ -399,7 +398,7 @@ updateNow = (node) ->
     else if node.kind == Node.TEXT_KIND
         updateText node, cfg
     else if node.kind == Node.TAG_KIND
-
+        #TODO: check tag or class
         updateProps node, cfg
     else
         throw new Error 'Unknown node kind. Got: ', node.kind
@@ -446,6 +445,7 @@ updateProps = (node, cfg) ->
                 console.warn 'child specified while text exists: ', cfg
             if cfg.hasOwnProperty 'children'
                 console.warn 'children specified while text exists', cfg
+
     else if propMap.hasOwnProperty 'child'
         child = child() if isFunc child = cfg.child
         updateChildren node, [child]

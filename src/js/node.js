@@ -418,7 +418,6 @@
     if (domList.indexOf(dom) > -1) {
       throw new Error('Dom element already controlled by another node.');
     }
-    return domList.push(dom);
   };
 
   performUpdate = function() {

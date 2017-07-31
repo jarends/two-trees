@@ -1,2 +1,1 @@
-#require './view-tree'
-require './node'
+require './view-tree'

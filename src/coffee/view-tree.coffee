@@ -8,25 +8,22 @@ NODE_KIND = 1
 COMP_CFG_ERROR = 'Cfg for creating a node must either be a string or an object containing a tag property as not empty string or a node class.'
 VIEW_CFG_ERROR = 'Cfg for creating a view must either be a string or an object containing a tag property as not empty string'
 
-
-isBool   = (value) -> typeof value == 'boolean'
-isNumber = (value) -> typeof value == 'number'
-isString = (value) -> typeof value == 'string' or value == value + ''
-isObject = (value) -> typeof value == 'object'
-isFunc   = (value) -> typeof value == 'function'
-isHTML   = (value) -> value instanceof HTMLElement
-isNot    = (value) -> value == null or value == undefined
-isSimple = (value) ->
-    (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
-
-
+getOrCall   = (value) -> if isFunc(value) then value() else value
+isBool      = (value) -> typeof value == 'boolean'
+isNumber    = (value) -> typeof value == 'number'
+isString    = (value) -> typeof value == 'string' or value == value + ''
+isObject    = (value) -> typeof value == 'object'
+isFunc      = (value) -> typeof value == 'function'
+isDom       = (value) -> value instanceof HTMLElement
+isDomText   = (value) -> value instanceof Text
+isNot       = (value) -> value == null or value == undefined
+isSimple    = (value) -> (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
+extendsNode = (value) -> isFunc(value) and ((value.prototype instanceof Node) or value == Node)
 
 
 normalizeName = (name) ->
     name.replace /[A-Z]/g, (name) ->
         '-' + name.toLowerCase()
-
-
 
 
 normalizeEvent = (type) ->
@@ -110,7 +107,9 @@ class Node
 
 
     register: (@cfg) ->
-        @keep = false
+        @parent = null
+        @depth  = 0
+        @keep   = false
         if not @__id__
             @__id__ = ++__id__
             nodeMap[@__id__] = @
@@ -125,22 +124,27 @@ class Node
             updateText @, cfg
         else
             updateProperties @, cfg
+        @
 
 
     # add nodes view to dom
     appendTo: (dom) ->
         @updateNow() if not @view
-        append  @, dom
+        append @, dom
 
-    behind:   (dom) ->
+    behind: (dom) ->
         @updateNow() if not @view
-        behind  @, dom
+        behind @, dom
 
-    before:   (dom) ->
+    before: (dom) ->
         @updateNow() if not @view
-        before  @, dom
+        before @, dom
 
-    replace:  (dom) ->
+    replace: (dom) ->
+        @updateNow() if not @view
+        replace @, dom
+
+    remove: (dom) ->
         @updateNow() if not @view
         replace @, dom
 
@@ -166,10 +170,10 @@ class Node
     onRemoved: () ->
 
 
-    add:       (child) ->
-    addAt:     (child, index) ->
-    remove:    (child) ->
-    removeAt:  (index) ->
+    addChild:       (child) ->
+    addChildAt:     (child, index) ->
+    removeChild:    (child) ->
+    removeChildAt:  (index) ->
 
 
 
@@ -180,7 +184,7 @@ class Node
 #    000        000   000  000   000  000             000
 #    000        000   000   0000000   000        0000000 
 
-tagMap     = {}
+classMap   = {}
 nodeMap    = {}
 dirtyMap   = {}
 cleanMap   = {}
@@ -198,8 +202,8 @@ rafTimeout = null
 #    000   000  000   000  000      
 
 map = (tag, clazz, overwrite = false) ->
-    if isNot(tagMap[tag]) or overwrite
-        tagMap[tag] = clazz
+    if isNot(classMap[tag]) or overwrite
+        classMap[tag] = clazz
     null
 
 
@@ -213,7 +217,7 @@ map = (tag, clazz, overwrite = false) ->
 #     0000000   000   000  000   000  000   000  000      
 
 unmap = (tag) ->
-    delete tagMap[tag]
+    delete classMap[tag]
     null
 
 
@@ -227,16 +231,15 @@ unmap = (tag) ->
 
 create = (cfg, root = null) ->
     #console.log 'ViewTree.create: ', cfg
-    throwNodeCfgError cfg if isNot cfg
-    tag = cfg.tag
-    if isSimple(cfg) or (not tag and (isSimple(cfg.text) or isFunc(cfg.text)))
-        clazz = ViewTree.DEFAULT_CLASS
-    else
-        if isFunc(tag) and ((tag.prototype instanceof Node) or tag == Node)
-            clazz = cfg.tag
-        else
-            throwNodeCfgError cfg if not isString(tag) or tag == ''
-            clazz = tagMap[tag] or ViewTree.DEFAULT_CLASS
+    if isNot cfg
+        throw new Error "A node can't be created from empty cfg."
+        
+    if not extendsNode clazz = cfg.clazz
+        if not extendsNode clazz = cfg.tag
+            clazz = null
+            tag   = cfg.nodeName.toLowerCase() if isDom cfg
+            clazz = classMap[tag] if isString tag = tag or cfg.tag
+    clazz = clazz or ViewTree.DEFAULT_CLASS
 
     #node = createNode clazz, cfg, inject
     node = new clazz cfg
@@ -244,36 +247,6 @@ create = (cfg, root = null) ->
 
     if root != null #TODO: node.render() is called twice in this case - bad!!!
         render(node, root)
-    node
-
-
-
-
-#     0000000  00000000   00000000   0000000   000000000  00000000        000   000   0000000   0000000    00000000
-#    000       000   000  000       000   000     000     000             0000  000  000   000  000   000  000     
-#    000       0000000    0000000   000000000     000     0000000         000 0 000  000   000  000   000  0000000 
-#    000       000   000  000       000   000     000     000             000  0000  000   000  000   000  000     
-#     0000000  000   000  00000000  000   000     000     00000000        000   000   0000000   0000000    00000000
-
-createNode = (clazz, cfg, inject) ->
-    inject = cfg.__i__ or inject
-    return new clazz cfg if not inject
-
-    #console.log 'INJECT: ', clazz, inject
-
-    p = clazz.prototype
-    m = {}
-    for key, value of inject
-        m[key] = p[key]
-        p[key] = value
-        #console.log 'INJECT set value: ', key, value
-
-    node       = new clazz cfg
-    node.__i__ = inject
-
-    for key, value of inject
-        node[key] = value
-        p[key]    = m[key]
     node
 
 
@@ -301,6 +274,7 @@ injectNode = (node, cfg) ->
 #     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
 
 createView = (node, cfg) ->
+    ###
     throwViewCfgError(cfg) if isNot cfg
     text = if isFunc(cfg.text) then cfg.text() else cfg.text
     if isSimple(cfg) or (not cfg.tag and (isSimple(text)))
@@ -312,7 +286,80 @@ createView = (node, cfg) ->
         node.tag  = tag
         node.view =  document.createElement tag
     node.view
+    ###
+    if node.view
+        throw new Error "View already exists"
+    if isNot cfg = node.render()
+        throw new Error "A view for an empty cfg can't be created."
+    switch true
+        when isSimple  cfg then createTextView    node, node.cfg = text: cfg + ''
+        when isDom     cfg then createTagFromDom  node, null, cfg
+        when isDomText cfg then createTextFromDom node, null, cfg
+        else
+            tag = cfg.tag
+            switch true
+                when isNot     tag then createTextView    node, cfg
+                when isString  tag then createTagView     node, cfg
+                when isDom     tag then createTagFromDom  node, cfg, tag
+                when isDomText tag then createTextFromDom node, cfg, tag
+                else
+                    if extendsNode tag
+                        throw new Error "A tag must be a string or a HTMLElement, you specified a Node class."
+                    throw new Error "A tag must be a string or a HTMLElement."
 
+    domList.push node.view if Node.CHECK_DOM
+    node
+
+
+
+
+createTextView = (node, cfg) ->
+    text = cfg.text
+    text = text() if isFunc text
+    if not isSimple text
+        throw new Error "The text for a text node must be a string, number or bool."
+    node.text = text
+    node.tag  = cfg.tag  = null
+    node.kind = Node.TEXT_KIND
+    node.view = document.createTextNode text
+
+
+createTextFromDom = (node, cfg, dom) ->
+    checkDom dom if Node.CHECK_DOM
+    node.text = dom.nodeValue
+    node.tag  = null
+    node.kind = Node.TEXT_KIND
+    node.view = dom
+    if cfg
+        text = cfg.text
+        if isNot text
+            cfg.text = node.text
+        else
+            text = text() if isFunc text
+            if not isSimple text
+                throw new Error "The text for a text node must be a string, number or bool."
+            node.text = dom.nodeValue = text
+    else
+        cfg = node.cfg = text: node.text
+    cfg.tag = null
+    node
+
+
+createTagView = (node, cfg) ->
+    node.tag  = tag = cfg.tag
+    node.kind = Node.TAG_KIND
+    node.view = document.createElement tag
+    node
+
+
+createTagFromDom = (node, cfg, dom) ->
+    checkDom dom if Node.CHECK_DOM
+    node.tag  = dom.nodeName.toLowerCase()
+    node.kind = Node.TAG_KIND
+    node.view = dom
+    cfg       = cfg or node.cfg = {}
+    cfg.tag   = node.tag
+    node
 
 
 
@@ -453,6 +500,8 @@ updateProperties = (node, cfg) ->
         text = text() if isFunc text = cfg.text
         if isSimple text
             updateChildren node, [text]
+        else if isDomText text
+            updateChildren node, [text]
 
         if Node.DEBUG
             if cfg.hasOwnProperty 'child'
@@ -472,9 +521,11 @@ updateProperties = (node, cfg) ->
         updateChildren node, cfg.children
 
     delete propMap.tag
+    delete propMap.clazz
     delete propMap.__i__
     delete propMap.keep
     delete propMap.text
+    delete propMap.child
     delete propMap.className
     delete propMap.style
     delete propMap.children
@@ -538,10 +589,14 @@ updateBool = (node, value, name) ->
     node.attrs[name] = node.view[name]
     return if node.attrs[name] == value
     view = node.view
-    if isNot(value) or value == false
+    if isNot value
         view.removeAttribute name
         view[name] = false
         delete node.attrs[name]
+    else if  value == false
+        view.removeAttribute name
+        view[name]       = false
+        node.attrs[name] = false
     else
         view.setAttribute name, ''
         view[name]       = true
@@ -703,13 +758,9 @@ updateChildren = (node, cfgs) ->
 
 change = (node, cfg) ->
     needsUpdate = node.needsUpdate()
-    canUpdate   = node.canUpdate(cfg)
-
-    #console.log 'change: ', node, cfg
-
     if node == cfg or node.constructor == cfg.tag
-        updateProperties node, node.render() if needsUpdate and canUpdate
-        replaceChild     node, node.render() if needsUpdate and not canUpdate
+        updateProperties node, node.render() if needsUpdate
+        replaceChild     node, node.render() if needsUpdate
 
         # node don't wants to be updated
 
@@ -741,19 +792,12 @@ addChild = (node, cfg) ->
         child = create cfg
 
     cfg = child.render()
-    if not child.view
-        child.view = createView child, cfg
+    child.updateNow() if not child.view
 
     node.children.push child
     node.view.appendChild child.view
     child.parent = node
     child.depth  = node.depth + 1
-
-    if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
-        updateText child, cfg
-    else
-        updateProperties child, cfg
-
     child.onMount()
     null
 
@@ -946,8 +990,27 @@ if typeof Object.assign == 'undefined'
 
 
 
+Node.create      = create
+Node.map         = map
+Node.unmap       = unmap
 
+Node.append      = append
+Node.behind      = behind
+Node.before      = before
+Node.replace     = replace
+Node.remove      = remove
 
+Node.getOrCall   = getOrCall
+Node.isBool      = isBool
+Node.isNumber    = isNumber
+Node.isString    = isString
+Node.isObject    = isObject
+Node.isFunc      = isFunc
+Node.isDom       = isDom
+Node.isDomText   = isDomText
+Node.isNot       = isNot
+Node.isSimple    = isSimple
+Node.extendsNode = extendsNode
 
 
 ViewTree =
