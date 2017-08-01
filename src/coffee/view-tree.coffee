@@ -1,13 +1,6 @@
 __id__ = 0
 
 
-TEXT_KIND = 0
-NODE_KIND = 1
-
-
-COMP_CFG_ERROR = 'Cfg for creating a node must either be a string or an object containing a tag property as not empty string or a node class.'
-VIEW_CFG_ERROR = 'Cfg for creating a view must either be a string or an object containing a tag property as not empty string'
-
 getOrCall   = (value) -> if isFunc(value) then value() else value
 isBool      = (value) -> typeof value == 'boolean'
 isNumber    = (value) -> typeof value == 'number'
@@ -29,25 +22,6 @@ normalizeName = (name) ->
 normalizeEvent = (type) ->
     type = type.slice 2
     type.charAt(0).toLowerCase() + normalizeName type.slice(1)
-
-
-
-
-throwNodeCfgError = (cfg) ->
-    throw new Error COMP_CFG_ERROR + ' cfg = ' + getCfgJson cfg
-
-
-throwViewCfgError = (cfg) ->
-    throw new Error VIEW_CFG_ERROR + ' cfg = ' + getCfgJson cfg
-
-
-
-
-getCfgJson = (cfg) ->
-    try
-        c = JSON.stringify cfg
-    catch
-    c + ''
 
 
 
@@ -415,7 +389,7 @@ update = (node) ->
     #console.log 'UPDATE: ', node.__id__
     id = node?.__id__
     if not id
-        throw new Error "DOM ERROR: can't update node. Node doesn't exist. cfg = " + getCfgJson(node?.cfg or null)
+        throw new Error "Can't update node. Node doesn't exist."
 
     if not dirty
         window.cancelAnimationFrame rafTimeout
@@ -1019,8 +993,6 @@ ViewTree =
     DEFAULT_CLASS:    Node
     HANDLE_CTX:       true
     HANDLE_DATA_TREE: true
-    COMP_CFG_ERROR:   COMP_CFG_ERROR
-    VIEW_CFG_ERROR:   VIEW_CFG_ERROR
     map:              map
     unmap:            unmap
     create:           create
