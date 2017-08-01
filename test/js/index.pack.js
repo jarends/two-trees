@@ -1314,9 +1314,8 @@ module.id = '../src/js/view-tree.js';
       return injectNode(this, this.cfg);
     };
 
-    Node.prototype.updateNow = function() {
-      var cfg;
-      cfg = this.render();
+    Node.prototype.updateNow = function(cfg) {
+      cfg = cfg || this.render();
       if (!this.view) {
         createView(this, cfg);
       }
@@ -1375,11 +1374,7 @@ module.id = '../src/js/view-tree.js';
       return this.keep;
     };
 
-    Node.prototype.needsUpdate = function() {
-      return true;
-    };
-
-    Node.prototype.canUpdate = function(cfg1) {
+    Node.prototype.needsUpdate = function(cfg1) {
       this.cfg = cfg1;
       return true;
     };
@@ -1942,19 +1937,16 @@ module.id = '../src/js/view-tree.js';
 
   change = function(node, cfg) {
     var needsUpdate;
-    needsUpdate = node.needsUpdate();
+    needsUpdate = node.needsUpdate(cfg);
     if (node === cfg || node.constructor === cfg.tag) {
       if (needsUpdate) {
         updateProperties(node, node.render());
       }
-      if (needsUpdate) {
-        replaceChild(node, node.render());
-      }
     } else if (node.tag !== cfg.tag || cfg instanceof Node) {
       replaceChild(node, cfg);
-    } else if (node.tag === void 0) {
+    } else if (isNot(node.tag)) {
       updateText(node, cfg);
-    } else if (needsUpdate && canUpdate) {
+    } else if (needsUpdate) {
       updateProperties(node, cfg);
     }
     return false;
@@ -1970,10 +1962,7 @@ module.id = '../src/js/view-tree.js';
       }
       child = create(cfg);
     }
-    cfg = child.render();
-    if (!child.view) {
-      child.updateNow();
-    }
+    child.updateNow(cfg = child.render());
     node.children.push(child);
     node.view.appendChild(child.view);
     child.parent = node;
@@ -2007,7 +1996,7 @@ module.id = '../src/js/view-tree.js';
       }
       child = create(cfg);
     }
-    cfg = child.render();
+    child.updateNow(cfg = child.render());
     if (!child.view) {
       child.view = createView(child, cfg);
     }

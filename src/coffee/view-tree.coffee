@@ -117,8 +117,8 @@ class Node
         injectNode @, @cfg
 
 
-    updateNow: () ->
-        cfg = @render()
+    updateNow: (cfg) ->
+        cfg = cfg or @render()
         createView @, cfg if not @view
         if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
             updateText @, cfg
@@ -158,8 +158,7 @@ class Node
     onUnmount: () -> @keep
 
 
-    needsUpdate: () -> true
-    canUpdate:   (@cfg) -> true
+    needsUpdate: (@cfg) -> true
     update:      () => update @
     render:      () -> @cfg
 
@@ -486,6 +485,7 @@ updateText = (node, cfg) ->
 updateProperties = (node, cfg) ->
     cleanMap[node.__id__] = true
     #console.log 'UPDATE PROPS: ', node.__id__, node.view
+
     cfg     = cfg.render() if cfg instanceof Node
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
@@ -757,20 +757,18 @@ updateChildren = (node, cfgs) ->
 #     0000000  000   000  000   000  000   000   0000000   00000000
 
 change = (node, cfg) ->
-    needsUpdate = node.needsUpdate()
+
+    needsUpdate = node.needsUpdate cfg
     if node == cfg or node.constructor == cfg.tag
         updateProperties node, node.render() if needsUpdate
-        replaceChild     node, node.render() if needsUpdate
-
-        # node don't wants to be updated
 
     else if node.tag != cfg.tag or cfg instanceof Node
         replaceChild node, cfg
 
-    else if node.tag == undefined # text node
+    else if isNot node.tag        # text node
         updateText node, cfg
 
-    else if needsUpdate and canUpdate # tag node
+    else if needsUpdate           # tag node
         updateProperties node, cfg
 
     false
@@ -791,8 +789,7 @@ addChild = (node, cfg) ->
         cfg.__i__ = node.__i__ if not cfg.__i__
         child = create cfg
 
-    cfg = child.render()
-    child.updateNow() if not child.view
+    child.updateNow cfg = child.render()
 
     node.children.push child
     node.view.appendChild child.view
@@ -846,7 +843,7 @@ replaceChild = (child, cfg) ->
         cfg.__i__ = node.__i__ if not cfg.__i__
         child = create cfg
 
-    cfg = child.render()
+    child.updateNow cfg = child.render()
     if not child.view
         child.view = createView child, cfg
 
