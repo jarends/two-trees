@@ -75,9 +75,10 @@ class Node
 
 
 
-    constructor: (cfg) ->
-        @register(cfg)
-        #console.log 'ctx: ', @ctx
+    constructor: (opts) ->
+        @register opts
+        @updateCfg opts
+        @updateNow()
 
 
     register: (@cfg) ->
@@ -93,7 +94,7 @@ class Node
 
     updateNow: (cfg) ->
         cfg = cfg or @render()
-        createView @, cfg if not @view
+        createView @, cfg if isNot @view
         if isSimple(cfg) or (not cfg.tag and (isSimple(cfg.text) or isFunc(cfg.text)))
             updateText @, cfg
         else
@@ -131,12 +132,8 @@ class Node
 
     onUnmount: () -> @keep
 
-    # this is very important for update mechanism, but it isn't very clear
-    # especially the '@' is important
-    # if members are copied from cfg to @ in the constructor, the same should happen in this call
-    # TODO: maybe rename this method or add another one with clear task and name!!!
-    needsUpdate: (@cfg) -> true
 
+    updateCfg:   (cfg) -> (@cfg = cfg) or true
     update:      () => update @
     render:      () -> @cfg
 
@@ -216,11 +213,9 @@ create = (cfg, root = null) ->
             clazz = null
             tag   = cfg.nodeName.toLowerCase() if isDom cfg
             clazz = classMap[tag] if isString tag = tag or cfg.tag
-    clazz = clazz or ViewTree.DEFAULT_CLASS
 
-    #node = createNode clazz, cfg, inject
-    node = new clazz cfg
-    createView node, node.render()
+    clazz = clazz or ViewTree.DEFAULT_CLASS
+    node  = new clazz cfg
 
     if root != null #TODO: node.render() is called twice in this case - bad!!!
         render(node, root)
@@ -251,19 +246,6 @@ injectNode = (node, cfg) ->
 #     0000000  000   000  00000000  000   000     000     00000000            0      000  00000000  00     00
 
 createView = (node, cfg) ->
-    ###
-    throwViewCfgError(cfg) if isNot cfg
-    text = if isFunc(cfg.text) then cfg.text() else cfg.text
-    if isSimple(cfg) or (not cfg.tag and (isSimple(text)))
-        node.tag  = undefined
-        node.text = if isNot(text) then cfg else text
-        node.view = document.createTextNode node.text
-    else
-        throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
-        node.tag  = tag
-        node.view =  document.createElement tag
-    node.view
-    ###
     if node.view
         throw new Error "View already exists"
     if isNot cfg = node.render()
@@ -353,15 +335,7 @@ render = (node, root) ->
         createView node, cfg
 
     root.appendChild(node.view)
-
-    node.parent = null
-    node.depth  = 0
-
-    if isSimple(cfg) or isNot(cfg.tag)
-        updateText node, cfg
-    else
-        updateProperties node, cfg
-
+    node.updateNow()
     node.onMount()
     null
 
@@ -736,7 +710,7 @@ updateChildren = (node, cfgs) ->
 
 change = (node, cfg) ->
 
-    needsUpdate = node.needsUpdate cfg
+    needsUpdate = node.updateCfg cfg
     if node == cfg or node.constructor == cfg.tag
         updateProperties node, node.render() if needsUpdate
 
@@ -822,8 +796,6 @@ replaceChild = (child, cfg) ->
         child = create cfg
 
     child.updateNow cfg = child.render()
-    if not child.view
-        child.view = createView child, cfg
 
     children[i]  = child
     child.parent = node

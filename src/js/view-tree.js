@@ -107,9 +107,11 @@
 
     Node.CHECK_DOM = true;
 
-    function Node(cfg) {
+    function Node(opts) {
       this.update = bind(this.update, this);
-      this.register(cfg);
+      this.register(opts);
+      this.updateCfg(opts);
+      this.updateNow();
     }
 
     Node.prototype.register = function(cfg1) {
@@ -127,7 +129,7 @@
 
     Node.prototype.updateNow = function(cfg) {
       cfg = cfg || this.render();
-      if (!this.view) {
+      if (isNot(this.view)) {
         createView(this, cfg);
       }
       if (isSimple(cfg) || (!cfg.tag && (isSimple(cfg.text) || isFunc(cfg.text)))) {
@@ -185,9 +187,8 @@
       return this.keep;
     };
 
-    Node.prototype.needsUpdate = function(cfg1) {
-      this.cfg = cfg1;
-      return true;
+    Node.prototype.updateCfg = function(cfg) {
+      return (this.cfg = cfg) || true;
     };
 
     Node.prototype.update = function() {
@@ -264,7 +265,6 @@
     }
     clazz = clazz || ViewTree.DEFAULT_CLASS;
     node = new clazz(cfg);
-    createView(node, node.render());
     if (root !== null) {
       render(node, root);
     }
@@ -284,20 +284,6 @@
   };
 
   createView = function(node, cfg) {
-
-    /*
-    throwViewCfgError(cfg) if isNot cfg
-    text = if isFunc(cfg.text) then cfg.text() else cfg.text
-    if isSimple(cfg) or (not cfg.tag and (isSimple(text)))
-        node.tag  = undefined
-        node.text = if isNot(text) then cfg else text
-        node.view = document.createTextNode node.text
-    else
-        throwViewCfgError(cfg) if not isString(tag = cfg.tag) or tag == ''
-        node.tag  = tag
-        node.view =  document.createElement tag
-    node.view
-     */
     var tag;
     if (node.view) {
       throw new Error("View already exists");
@@ -418,13 +404,7 @@
       createView(node, cfg);
     }
     root.appendChild(node.view);
-    node.parent = null;
-    node.depth = 0;
-    if (isSimple(cfg) || isNot(cfg.tag)) {
-      updateText(node, cfg);
-    } else {
-      updateProperties(node, cfg);
-    }
+    node.updateNow();
     node.onMount();
     return null;
   };
@@ -748,7 +728,7 @@
 
   change = function(node, cfg) {
     var needsUpdate;
-    needsUpdate = node.needsUpdate(cfg);
+    needsUpdate = node.updateCfg(cfg);
     if (node === cfg || node.constructor === cfg.tag) {
       if (needsUpdate) {
         updateProperties(node, node.render());
@@ -808,9 +788,6 @@
       child = create(cfg);
     }
     child.updateNow(cfg = child.render());
-    if (!child.view) {
-      child.view = createView(child, cfg);
-    }
     children[i] = child;
     child.parent = node;
     child.depth = node.depth + 1;

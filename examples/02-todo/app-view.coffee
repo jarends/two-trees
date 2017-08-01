@@ -85,6 +85,9 @@ class AppView extends CompNode
 
     constructor: (cfg) ->
         super cfg
+
+
+    updateCfg: (cfg) ->
         @data = @tree.root
 
         

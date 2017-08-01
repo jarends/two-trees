@@ -44,82 +44,55 @@ window.data  = model.root
 
 
 
-
-
-
 class A
 
-    constructor: (cfg) ->
-        console.log 'constructor A: '
-        @populate A
+    constructor: (opts) ->
+        #console.log 'constructor A: '
+        @updateCfg opts
+        @create()
 
+    updateCfg: (cfg) ->
+        @cfg = cfg
+        true
 
-    populate: (clazz) ->
-        if @constructor == clazz
-            console.log 'populate: ', @
+    create: () ->
+        console.log 'create: ', @render()
+
+    render: () ->
+        ';-)'
 
 
 class B extends A
 
-    constructor: (cfg) ->
-        super cfg
-        console.log 'constructor B: '
+    constructor: (opts) ->
+        #console.log 'constructor B: '
+        super opts
+
+    updateCfg: (cfg) ->
         @data = cfg.data
-        @populate B
+        super cfg
+
+    render: () ->
+        @data + ' ' + super()
 
 
 class C extends B
 
-    constructor: (cfg) ->
-        super cfg
-        console.log 'constructor C: '
-        @bla = cfg.bla
-        @populate C
+    constructor: (opts) ->
+        #console.log 'constructor C: '
+        super opts
 
-
-new C({})
-
-
-
-
-
-
-
-
-
-
-
-
-class A
-
-    constructor: (cfg) ->
-        console.log 'constructor A: '
-        @populate()
-
-
-    populate: (clazz) ->
-        console.log 'populate: ', @
-
-
-class B extends A
-
-    constructor: (cfg) ->
-        console.log 'constructor B: '
-        @data = cfg.data
-        super cfg
-
-
-class C extends B
-
-    constructor: (cfg) ->
-        console.log 'constructor C: '
+    updateCfg: (cfg) ->
         @bla = cfg.bla
         super cfg
 
+    render: () ->
+        @bla + ' and ' + super()
 
-new C({})
 
-
+a = new A()
+b = new B({data:'hello from B'})
+c = new C({data:'hello from B, child of C', bla:'hello from C'})
 
 
 

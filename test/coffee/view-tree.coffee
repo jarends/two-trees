@@ -17,14 +17,11 @@ class MyTextNode2 extends Node
 class MyExtendedNode extends Node
 
 
-
-updateNode    = (node) -> node.updateNow() if Node.isNot node.view
 expectClass   = (node, clazz) -> expect(node.constructor).to.equal clazz
 expectExtends = (node, clazz) -> expect(node).to.be.instanceof clazz
 
 
 expectTextNode = (node, clazz, text) ->
-    updateNode    node
     expectClass   node, clazz
     expectExtends node.view, Text
     expect(node.kind).to.equal Node.TEXT_KIND
@@ -32,7 +29,6 @@ expectTextNode = (node, clazz, text) ->
     expect(node.text).to.equal text
 
 expectTagNode = (node, clazz, tag) ->
-    updateNode    node
     expectClass   node, clazz
     expectExtends node.view, HTMLElement
     expect(node.kind).to.equal Node.TAG_KIND
@@ -47,7 +43,6 @@ expectAttr = (node, name, value) ->
 
 
 expectBoolAttr = (node, name, value) ->
-    updateNode node
     expectExtends node.view, HTMLElement
     expect(node.attrs[name]).to.equal value = Node.getOrCall value
     if value == true
@@ -185,26 +180,26 @@ describe 'new Node', () ->
 
     describe 'init error', () ->
         it "should throw an error, if cfg = null", () ->
-            expect(() -> updateNow(new Node())).to.throw()
+            expect(() -> new Node()).to.throw()
 
         it "should throw an error, if neither tag nor text are set", () ->
-            expect(() -> updateNow(new Node {})).to.throw()
+            expect(() -> new Node {}).to.throw()
 
         it "should throw an error, if cfg.tag is invalid", () ->
-            expect(() -> updateNow(new Node tag: 1)).to.throw()
-            expect(() -> updateNow(new Node tag: true)).to.throw()
-            expect(() -> updateNow(new Node tag: {})).to.throw()
-            expect(() -> updateNow(new Node tag: [])).to.throw()
-            expect(() -> updateNow(new Node tag: () ->)).to.throw()
-            expect(() -> updateNow(new Node tag: Node)).to.throw()
+            expect(() -> new Node tag: 1).to.throw()
+            expect(() -> new Node tag: true).to.throw()
+            expect(() -> new Node tag: {}).to.throw()
+            expect(() -> new Node tag: []).to.throw()
+            expect(() -> new Node tag: () ->).to.throw()
+            expect(() -> new Node tag: Node).to.throw()
 
         it "should throw an error, if cfg.text is invalid", () ->
-            expect(() -> updateNow(new Node text: null)).to.throw()
-            expect(() -> updateNow(new Node text: {})).to.throw()
-            expect(() -> updateNow(new Node text: [])).to.throw()
-            expect(() -> updateNow(new Node text: () ->)).to.throw()
-            expect(() -> updateNow(new Node text: () -> {})).to.throw()
-            expect(() -> updateNow(new Node text: () -> [])).to.throw()
+            expect(() -> new Node text: null).to.throw()
+            expect(() -> new Node text: {}).to.throw()
+            expect(() -> new Node text: []).to.throw()
+            expect(() -> new Node text: () ->).to.throw()
+            expect(() -> new Node text: () -> {}).to.throw()
+            expect(() -> new Node text: () -> []).to.throw()
 
         it "should not throw an error, if cfg.text is valid", () ->
             expect(() -> expectTextNode new Node(text: ''),         Node, '')   .to.not.throw()
@@ -380,7 +375,7 @@ describe 'node instance', () ->
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            expect(() -> node.appendTo parent.updateNow().view).to.not.throw()
+            expect(() -> node.appendTo parent.view).to.not.throw()
             Node.CHECK_DOM = true
 
 
@@ -409,14 +404,14 @@ describe 'node instance', () ->
         it 'should throw an error if the doms parent is controlled by a node', () ->
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            parent.updateNow().view.appendChild prev = getTag 'div'
+            parent.view.appendChild prev = getTag 'div'
             expect(() -> node.behind prev).to.throw()
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            parent.updateNow().view.appendChild prev = getTag 'div'
+            parent.view.appendChild prev = getTag 'div'
             expect(() -> node.behind prev).to.not.throw()
             Node.CHECK_DOM = true
 
@@ -435,14 +430,14 @@ describe 'node instance', () ->
         it 'should throw an error if the doms parent is controlled by a node', () ->
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            parent.updateNow().view.appendChild next = getTag 'div'
+            parent.view.appendChild next = getTag 'div'
             expect(() -> node.before next).to.throw()
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            parent.updateNow().view.appendChild next = getTag 'div'
+            parent.view.appendChild next = getTag 'div'
             expect(() -> node.before next).to.not.throw()
             Node.CHECK_DOM = true
 
@@ -460,28 +455,28 @@ describe 'node instance', () ->
         it 'should throw an error if the doms parent is controlled by a node', () ->
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            parent.updateNow().view.appendChild old = getTag 'div'
+            parent.view.appendChild old = getTag 'div'
             expect(() -> node.replace old).to.throw()
 
         it 'should not throw an error for the doms parent if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
-            parent.updateNow().view.appendChild old = getTag 'div'
+            parent.view.appendChild old = getTag 'div'
             expect(() -> node.replace old).to.not.throw()
             Node.CHECK_DOM = true
 
         it 'should throw an error if the dom is controlled by a node', () ->
             parent = getTag 'div'
             node   = new Node tag:'div'
-            parent.appendChild old = (new Node tag:'div').updateNow().view
+            parent.appendChild old = (new Node tag:'div').view
             expect(() -> node.replace old).to.throw()
 
         it 'should not throw an error for the dom if Node.CHECK_DOM = false', () ->
             Node.CHECK_DOM = false
             parent = getTag 'div'
             node   = new Node tag:'div'
-            parent.appendChild old = (new Node tag:'div').updateNow().view
+            parent.appendChild old = (new Node tag:'div').view
             expect(() -> node.replace old).to.not.throw()
             Node.CHECK_DOM = true
 
