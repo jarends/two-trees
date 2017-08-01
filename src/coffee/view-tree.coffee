@@ -157,8 +157,12 @@ class Node
 
     onUnmount: () -> @keep
 
-
+    # this is very important for update mechanism, but it isn't very clear
+    # especially the '@' is important
+    # if members are copied from cfg to @ in the constructor, the same should happen in this call
+    # TODO: maybe rename this method or add another one with clear task and name!!!
     needsUpdate: (@cfg) -> true
+
     update:      () => update @
     render:      () -> @cfg
 

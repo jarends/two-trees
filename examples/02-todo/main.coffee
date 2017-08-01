@@ -34,3 +34,105 @@ app.appendTo document.querySelector '.app'
 
 window.model = model
 window.data  = model.root
+
+
+
+
+
+
+
+
+
+
+
+
+
+class A
+
+    constructor: (cfg) ->
+        console.log 'constructor A: '
+        @populate A
+
+
+    populate: (clazz) ->
+        if @constructor == clazz
+            console.log 'populate: ', @
+
+
+class B extends A
+
+    constructor: (cfg) ->
+        super cfg
+        console.log 'constructor B: '
+        @data = cfg.data
+        @populate B
+
+
+class C extends B
+
+    constructor: (cfg) ->
+        super cfg
+        console.log 'constructor C: '
+        @bla = cfg.bla
+        @populate C
+
+
+new C({})
+
+
+
+
+
+
+
+
+
+
+
+
+class A
+
+    constructor: (cfg) ->
+        console.log 'constructor A: '
+        @populate()
+
+
+    populate: (clazz) ->
+        console.log 'populate: ', @
+
+
+class B extends A
+
+    constructor: (cfg) ->
+        console.log 'constructor B: '
+        @data = cfg.data
+        super cfg
+
+
+class C extends B
+
+    constructor: (cfg) ->
+        console.log 'constructor C: '
+        @bla = cfg.bla
+        super cfg
+
+
+new C({})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
