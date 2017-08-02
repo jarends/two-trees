@@ -75,9 +75,9 @@ class Node
 
 
 
-    constructor: (opts) ->
-        @register opts
-        @updateCfg opts
+    constructor: (cfg) ->
+        @register cfg
+        @updateCfg cfg
         @updateNow()
 
 

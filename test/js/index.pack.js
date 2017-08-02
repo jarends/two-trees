@@ -7,7 +7,7 @@
         index:      0,
         total:      1,
         startIndex: 0,
-        type:       'register::0.48756901295027655_1501252643243',
+        type:       'register::0.5486280962914301_1501684661449',
         path:       '/Users/JOA/Projects/workspaces/my/two-trees/test/js/index.js',
         pack:       pack
     };
@@ -1261,10 +1261,10 @@ module.id = '../src/js/view-tree.js';
 
     Node.CHECK_DOM = true;
 
-    function Node(opts) {
+    function Node(cfg) {
       this.update = bind(this.update, this);
-      this.register(opts);
-      this.updateCfg(opts);
+      this.register(cfg);
+      this.updateCfg(cfg);
       this.updateNow();
     }
 

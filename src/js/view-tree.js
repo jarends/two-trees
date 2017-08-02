@@ -107,10 +107,10 @@
 
     Node.CHECK_DOM = true;
 
-    function Node(opts) {
+    function Node(cfg) {
       this.update = bind(this.update, this);
-      this.register(opts);
-      this.updateCfg(opts);
+      this.register(cfg);
+      this.updateCfg(cfg);
       this.updateNow();
     }
 
