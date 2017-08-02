@@ -103,25 +103,11 @@ class Node
 
 
     # add nodes view to dom
-    appendTo: (dom) ->
-        @updateNow() if not @view
-        append @, dom
-
-    behind: (dom) ->
-        @updateNow() if not @view
-        behind @, dom
-
-    before: (dom) ->
-        @updateNow() if not @view
-        before @, dom
-
-    replace: (dom) ->
-        @updateNow() if not @view
-        replace @, dom
-
-    remove: (dom) ->
-        @updateNow() if not @view
-        replace @, dom
+    appendTo: (dom) -> append  @, dom
+    behind:   (dom) -> behind  @, dom
+    before:   (dom) -> before  @, dom
+    replace:  (dom) -> replace @, dom
+    remove:   (dom) -> replace @, dom
 
 
     dispose: () -> null
@@ -741,8 +727,6 @@ addChild = (node, cfg) ->
         cfg.__i__ = node.__i__ if not cfg.__i__
         child = create cfg
 
-    child.updateNow cfg = child.render()
-
     node.children.push child
     node.view.appendChild child.view
     child.parent = node
@@ -794,8 +778,6 @@ replaceChild = (child, cfg) ->
     else
         cfg.__i__ = node.__i__ if not cfg.__i__
         child = create cfg
-
-    child.updateNow cfg = child.render()
 
     children[i]  = child
     child.parent = node

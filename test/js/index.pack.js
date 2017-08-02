@@ -1295,37 +1295,22 @@ module.id = '../src/js/view-tree.js';
     };
 
     Node.prototype.appendTo = function(dom) {
-      if (!this.view) {
-        this.updateNow();
-      }
       return append(this, dom);
     };
 
     Node.prototype.behind = function(dom) {
-      if (!this.view) {
-        this.updateNow();
-      }
       return behind(this, dom);
     };
 
     Node.prototype.before = function(dom) {
-      if (!this.view) {
-        this.updateNow();
-      }
       return before(this, dom);
     };
 
     Node.prototype.replace = function(dom) {
-      if (!this.view) {
-        this.updateNow();
-      }
       return replace(this, dom);
     };
 
     Node.prototype.remove = function(dom) {
-      if (!this.view) {
-        this.updateNow();
-      }
       return replace(this, dom);
     };
 
@@ -1907,7 +1892,6 @@ module.id = '../src/js/view-tree.js';
       }
       child = create(cfg);
     }
-    child.updateNow(cfg = child.render());
     node.children.push(child);
     node.view.appendChild(child.view);
     child.parent = node;
@@ -1941,7 +1925,6 @@ module.id = '../src/js/view-tree.js';
       }
       child = create(cfg);
     }
-    child.updateNow(cfg = child.render());
     children[i] = child;
     child.parent = node;
     child.depth = node.depth + 1;
