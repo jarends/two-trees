@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "main.js",
+  "sourceRoot": "../../../..",
+  "sources": [
+    "examples/00-hello-world/main.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;AAAA,MAAA;;EAAA,QAAA,GAAW,OAAA,CAAQ,cAAR,CAAuB,CAAC;;EAEnC,GAAA,GAAM,QAAQ,CAAC,MAAT,CAAgB,iBAAhB;;EAEN,GAAG,CAAC,QAAJ,CAAa,QAAQ,CAAC,aAAT,CAAuB,MAAvB,CAAb;AAJA"
+}

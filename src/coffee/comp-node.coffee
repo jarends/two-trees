@@ -1,7 +1,7 @@
-ViewTree = require './view-tree'
+ViewNode = require './view-node'
 
 
-class CompNode extends ViewTree.Node
+class CompNode extends ViewNode
 
 
     constructor: (cfg) ->

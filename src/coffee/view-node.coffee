@@ -11,7 +11,7 @@ isDom       = (value) -> value instanceof HTMLElement
 isDomText   = (value) -> value instanceof Text
 isNot       = (value) -> value == null or value == undefined
 isSimple    = (value) -> (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
-extendsNode = (value) -> isFunc(value) and ((value.prototype instanceof Node) or value == Node)
+extendsNode = (value) -> isFunc(value) and ((value.prototype instanceof ViewNode) or value == ViewNode)
 
 
 normalizeName = (name) ->
@@ -66,12 +66,12 @@ normalizeEvent = (type) ->
 
 
 
-class Node
+class ViewNode
 
 
-    @DEBUG     = true
-    @CHECK_DOM = true
-
+    @DEBUG         = true
+    @CHECK_DOM     = true
+    @DEFAULT_CLASS = @
 
 
 
@@ -190,7 +190,6 @@ unmap = (tag) ->
 #     0000000  000   000  00000000  000   000     000     00000000
 
 create = (cfg, root = null) ->
-    #console.log 'ViewTree.create: ', cfg
     if isNot cfg
         throw new Error "A node can't be created from empty cfg."
         
@@ -200,7 +199,7 @@ create = (cfg, root = null) ->
             tag   = cfg.nodeName.toLowerCase() if isDom cfg
             clazz = classMap[tag] if isString tag = tag or cfg.tag
 
-    clazz = clazz or ViewTree.DEFAULT_CLASS
+    clazz = clazz or ViewNode.DEFAULT_CLASS
     node  = new clazz cfg
 
     if root != null #TODO: node.render() is called twice in this case - bad!!!
@@ -249,10 +248,10 @@ createView = (node, cfg) ->
                 when isDomText tag then createTextFromDom node, cfg, tag
                 else
                     if extendsNode tag
-                        throw new Error "A tag must be a string or a HTMLElement, you specified a Node class."
+                        throw new Error "A tag must be a string or a HTMLElement, you specified a ViewNode class."
                     throw new Error "A tag must be a string or a HTMLElement."
 
-    domList.push node.view if Node.CHECK_DOM
+    domList.push node.view if ViewNode.CHECK_DOM
     node
 
 
@@ -265,15 +264,15 @@ createTextView = (node, cfg) ->
         throw new Error "The text for a text node must be a string, number or bool."
     node.text = text
     node.tag  = cfg.tag  = null
-    node.kind = Node.TEXT_KIND
+    node.kind = ViewNode.TEXT_KIND
     node.view = document.createTextNode text
 
 
 createTextFromDom = (node, cfg, dom) ->
-    checkDom dom if Node.CHECK_DOM
+    checkDom dom if ViewNode.CHECK_DOM
     node.text = dom.nodeValue
     node.tag  = null
-    node.kind = Node.TEXT_KIND
+    node.kind = ViewNode.TEXT_KIND
     node.view = dom
     if cfg
         text = cfg.text
@@ -292,15 +291,15 @@ createTextFromDom = (node, cfg, dom) ->
 
 createTagView = (node, cfg) ->
     node.tag  = tag = cfg.tag
-    node.kind = Node.TAG_KIND
+    node.kind = ViewNode.TAG_KIND
     node.view = document.createElement tag
     node
 
 
 createTagFromDom = (node, cfg, dom) ->
-    checkDom dom if Node.CHECK_DOM
+    checkDom dom if ViewNode.CHECK_DOM
     node.tag  = dom.nodeName.toLowerCase()
-    node.kind = Node.TAG_KIND
+    node.kind = ViewNode.TAG_KIND
     node.view = dom
     cfg       = cfg or node.cfg = {}
     cfg.tag   = node.tag
@@ -315,7 +314,6 @@ createTagFromDom = (node, cfg, dom) ->
 #    000   000  00000000  000   000  0000000    00000000  000   000
 
 render = (node, root) ->
-    #console.log 'ViewTree.render: ', node, root
     cfg = node.render()
     if not node.view
         createView node, cfg
@@ -349,7 +347,7 @@ update = (node) ->
     #console.log 'UPDATE: ', node.__id__
     id = node?.__id__
     if not id
-        throw new Error "Can't update node. Node doesn't exist."
+        throw new Error "Can't update node. ViewNode doesn't exist."
 
     if not dirty
         window.cancelAnimationFrame rafTimeout
@@ -424,7 +422,7 @@ updateProperties = (node, cfg) ->
     cleanMap[node.__id__] = true
     #console.log 'UPDATE PROPS: ', node.__id__, node.view
 
-    cfg     = cfg.render() if cfg instanceof Node
+    cfg     = cfg.render() if cfg instanceof ViewNode
     attrs   = node.attrs or node.attrs = {}
     propMap = Object.assign {}, attrs, node.events, cfg
 
@@ -441,7 +439,7 @@ updateProperties = (node, cfg) ->
         else if isDomText text
             updateChildren node, [text]
 
-        if Node.DEBUG
+        if ViewNode.DEBUG
             if cfg.hasOwnProperty 'child'
                 console.warn 'child specified while text exists: ', cfg
             if cfg.hasOwnProperty 'children'
@@ -451,7 +449,7 @@ updateProperties = (node, cfg) ->
         child = child() if isFunc child = cfg.child
         updateChildren node, [child]
 
-        if Node.DEBUG
+        if ViewNode.DEBUG
             if cfg.hasOwnProperty 'children'
                 console.warn 'children specified while text exists', cfg
 
@@ -700,7 +698,7 @@ change = (node, cfg) ->
     if node == cfg or node.constructor == cfg.tag
         updateProperties node, node.render() if needsUpdate
 
-    else if node.tag != cfg.tag or cfg instanceof Node
+    else if node.tag != cfg.tag or cfg instanceof ViewNode
         replaceChild node, cfg
 
     else if isNot node.tag        # text node
@@ -721,7 +719,7 @@ change = (node, cfg) ->
 #    000   000  0000000    0000000
 
 addChild = (node, cfg) ->
-    if cfg instanceof Node
+    if cfg instanceof ViewNode
         child = cfg
     else
         cfg.__i__ = node.__i__ if not cfg.__i__
@@ -764,7 +762,6 @@ removeChild = (child) ->
 #    000   000  00000000  000        0000000  000   000   0000000  00000000
 
 replaceChild = (child, cfg) ->
-    #console.log 'ViewTree.replaceChild: ', child, cfg
     node     = child.parent
     children = node.children
     i        = children.indexOf child
@@ -772,7 +769,7 @@ replaceChild = (child, cfg) ->
 
     disposeNode child
 
-    if cfg instanceof Node
+    if cfg instanceof ViewNode
         child = cfg
         cfg   = child.render()
     else
@@ -829,7 +826,7 @@ checkDom = (dom) ->
 
 
 append = (node, dom) ->
-    checkDom dom if Node.CHECK_DOM
+    checkDom dom if ViewNode.CHECK_DOM
     dom.appendChild node.view
 
 
@@ -837,7 +834,7 @@ append = (node, dom) ->
 behind = (node, dom) ->
     parent = dom.parentNode
     next   = dom.nextSibling
-    checkDom parent if Node.CHECK_DOM
+    checkDom parent if ViewNode.CHECK_DOM
     if next
         parent.insertBefore node.view, next
     else
@@ -846,13 +843,13 @@ behind = (node, dom) ->
 
 before = (node, dom) ->
     parent = dom.parentNode
-    checkDom parent if Node.CHECK_DOM
+    checkDom parent if ViewNode.CHECK_DOM
     parent.insertBefore node.view, dom
 
 
 replace = (node, dom) ->
     parent = dom.parentNode
-    if Node.CHECK_DOM
+    if ViewNode.CHECK_DOM
         checkDom parent
         checkDom dom
     parent.replaceChild node.view, dom
@@ -860,7 +857,7 @@ replace = (node, dom) ->
 
 remove = (node) ->
     parent = node.view.parentNode
-    checkDom parent if Node.CHECK_DOM
+    checkDom parent if ViewNode.CHECK_DOM
     parent.removeChild node.view
 
 
@@ -919,48 +916,36 @@ if typeof Object.assign == 'undefined'
 
 
 
-Node.create      = create
-Node.map         = map
-Node.unmap       = unmap
+ViewNode.create      = create
+ViewNode.map         = map
+ViewNode.unmap       = unmap
 
-Node.append      = append
-Node.behind      = behind
-Node.before      = before
-Node.replace     = replace
-Node.remove      = remove
+ViewNode.append      = append
+ViewNode.behind      = behind
+ViewNode.before      = before
+ViewNode.replace     = replace
+ViewNode.remove      = remove
 
-Node.getOrCall   = getOrCall
-Node.isBool      = isBool
-Node.isNumber    = isNumber
-Node.isString    = isString
-Node.isObject    = isObject
-Node.isFunc      = isFunc
-Node.isDom       = isDom
-Node.isDomText   = isDomText
-Node.isNot       = isNot
-Node.isSimple    = isSimple
-Node.extendsNode = extendsNode
+ViewNode.getOrCall   = getOrCall
+ViewNode.isBool      = isBool
+ViewNode.isNumber    = isNumber
+ViewNode.isString    = isString
+ViewNode.isObject    = isObject
+ViewNode.isFunc      = isFunc
+ViewNode.isDom       = isDom
+ViewNode.isDomText   = isDomText
+ViewNode.isNot       = isNot
+ViewNode.isSimple    = isSimple
+ViewNode.extendsNode = extendsNode
 
 
-ViewTree =
-    Node:             Node
-    DEFAULT_CLASS:    Node
-    HANDLE_CTX:       true
-    HANDLE_DATA_TREE: true
-    map:              map
-    unmap:            unmap
-    create:           create
-    render:           render
-    remove:           remove
-    update:           update
-    updateNow:        updateNow
 
 
 
 
 if typeof module != 'undefined'
-    module.exports = ViewTree
+    module.exports = ViewNode
 if typeof window != 'undefined'
-    window.ViewTree = ViewTree
+    window.ViewNode = ViewNode
 else
-    this.ViewTree = ViewTree
+    this.ViewNode = ViewNode

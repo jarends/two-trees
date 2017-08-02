@@ -1,14 +1,14 @@
 trees    = require '../two-trees'
 AppView  = require './app-view'
-ViewTree = trees.ViewTree
+ViewNode = trees.ViewNode
 DataTree = trees.DataTree
 
 model = new DataTree
     title:   'hello two-trees!'
     bgGreen: 255
 
-app = ViewTree.create
+app = ViewNode.create
     tag:   AppView
     model: model
 
-ViewTree.render app, document.querySelector '.app'
+app.appendTo document.querySelector '.app'

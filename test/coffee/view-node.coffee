@@ -1,5 +1,5 @@
-ViewTree = require '../../src/js/view-tree'
-Node     = ViewTree.Node
+ViewNode = require '../../src/js/view-node'
+Node     = ViewNode
 
 
 getTag  = (tag)  -> document.createElement  tag

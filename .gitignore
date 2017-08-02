@@ -2,3 +2,6 @@
 .DS_Store
 /node_modules
 /Icon
+/src/coffee/node.coffee
+/src/js/node.js
+/src/js/node.js.map

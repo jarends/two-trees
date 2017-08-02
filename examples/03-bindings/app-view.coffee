@@ -1,10 +1,14 @@
-ViewTree = require('../two-trees').ViewTree
+ViewNode = require('../two-trees').ViewNode
 
 
-class AppView extends ViewTree.Node
+class AppView extends ViewNode
 
 
     constructor: (cfg) ->
+        super cfg
+
+
+    updateCfg: (cfg) ->
         super cfg
         @data = @tree.root
 

@@ -1,11 +1,11 @@
 trees    = require '../two-trees'
 AppView  = require './app-view'
-ViewTree = trees.ViewTree
 DataTree = trees.DataTree
+ViewNode = trees.ViewNode
 CompNode = trees.CompNode
 
 # set CompNode as default class for each node to enable bindings
-ViewTree.DEFAULT_CLASS = CompNode
+ViewNode.DEFAULT_CLASS = CompNode
 
 
 model = new DataTree
@@ -14,13 +14,13 @@ model = new DataTree
     clicks:  0
 
 
-app = ViewTree.create
+app = ViewNode.create
     tag: AppView
     __i__:
         tree: model
 
 
-ViewTree.render app, document.querySelector '.app'
+app.appendTo document.querySelector '.app'
 
 
 # expose model for testing bindings in console

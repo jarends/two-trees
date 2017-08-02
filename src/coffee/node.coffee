@@ -236,7 +236,7 @@ create = (cfg) ->
             clazz = null
             tag   = cfg.nodeName.toLowerCase() if isDom cfg
             clazz = classMap[tag] if isString tag = tag or cfg.tag
-    clazz = clazz or Node.DEFAULT_CLASS
+    clazz = clazz or Node.DEFAULT_CLASS or true
     new clazz cfg
 
 

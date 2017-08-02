@@ -296,7 +296,7 @@
         }
       }
     }
-    clazz = clazz || Node.DEFAULT_CLASS;
+    clazz = clazz || Node.DEFAULT_CLASS || true;
     return new clazz(cfg);
   };
 

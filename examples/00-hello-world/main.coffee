@@ -1,6 +1,6 @@
-ViewTree = require('../two-trees').ViewTree
+ViewNode = require('../two-trees').ViewNode
 
-app = ViewTree.create 'Hello World ;-)'
+app = ViewNode.create 'Hello World ;-)'
 
-ViewTree.render app, document.querySelector '.app'
+app.appendTo document.querySelector '.app'
 

@@ -1,5 +1,4 @@
 module.exports =
-    ViewTree: require './view-tree'
     DataTree: require './data-tree'
+    ViewNode: require './view-node'
     CompNode: require './comp-node'
-    Node:     require './node'
