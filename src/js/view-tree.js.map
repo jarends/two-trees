@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "view-tree.js",
+  "sourceRoot": "../..",
+  "sources": [
+    "src/coffee/view-tree.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAAA;EAAA,MAAM,CAAC,OAAP,GAAiB,OAAA,CAAQ,aAAR;AAAjB"
+}

@@ -1,4 +1,4 @@
-_      = require './/utils'
+_      = require './utils'
 __id__ = 0
 
 

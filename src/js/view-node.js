@@ -4,7 +4,7 @@
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     slice = [].slice;
 
-  _ = require('.//utils');
+  _ = require('./utils');
 
   __id__ = 0;
 
