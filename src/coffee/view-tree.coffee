@@ -1,1 +1,1 @@
-module.exports = require './view-node'
+module.exports = require './view-node' # ;-)
