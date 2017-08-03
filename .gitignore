@@ -6,3 +6,4 @@
 /src/js/node.js
 /src/js/node.js.map
 /test/js
+*.map
