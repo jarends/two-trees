@@ -4,12 +4,8 @@ ViewNode = require './view-node'
 class CompNode extends ViewNode
 
 
-    constructor: (cfg) ->
-        super(cfg)
-
-
     register: (cfg) ->
-        super(cfg)
+        super cfg
 
         @paths = []
         if typeof cfg == 'object'
@@ -21,7 +17,7 @@ class CompNode extends ViewNode
                         @bind binding[0], binding[1]
                     else
                         @bind binding
-        @__id__
+        @
 
 
     onUnmount: () ->

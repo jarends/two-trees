@@ -1,6 +1,5 @@
-ViewNode = require '../../src/js/view-node'
-Node     = ViewNode
-
+Node  = require '../../src/js/view-node'
+utils = require '../../src/js/utils'
 
 getTag  = (tag)  -> document.createElement  tag
 getText = (text) -> document.createTextNode text
@@ -38,13 +37,13 @@ expectTagNode = (node, clazz, tag) ->
 expectAttr = (node, name, value) ->
     expectExtends node.view, HTMLElement
     expect(node.kind).to.equal Node.TAG_KIND
-    expect(node.attrs[name]).to.equal value = Node.getOrCall value
+    expect(node.attrs[name]).to.equal value = utils.getOrCall value
     expect(node.view.getAttribute(name)).to.equal value + ''
 
 
 expectBoolAttr = (node, name, value) ->
     expectExtends node.view, HTMLElement
-    expect(node.attrs[name]).to.equal value = Node.getOrCall value
+    expect(node.attrs[name]).to.equal value = utils.getOrCall value
     if value == true
         expect(node.view.getAttribute(name)).to.equal ''
         expect(node.view[name]).to.equal value

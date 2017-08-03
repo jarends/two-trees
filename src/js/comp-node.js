@@ -9,8 +9,8 @@
   CompNode = (function(superClass) {
     extend(CompNode, superClass);
 
-    function CompNode(cfg) {
-      CompNode.__super__.constructor.call(this, cfg);
+    function CompNode() {
+      return CompNode.__super__.constructor.apply(this, arguments);
     }
 
     CompNode.prototype.register = function(cfg) {
@@ -32,7 +32,7 @@
           }
         }
       }
-      return this.__id__;
+      return this;
     };
 
     CompNode.prototype.onUnmount = function() {
