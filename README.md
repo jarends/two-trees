@@ -26,7 +26,7 @@ This project is under development. Play with it but use it on your own risk.
 <br/>  
   
 Until now you have to look into the little [examples](https://github.com/jarends/two-trees/tree/master/examples/) to get a feeling, how it works.  
-And a working todo app example can be found here: http://definitely.eu/two-trees/
+And a working example can be found here: [todo app](http://definitely.eu/two-trees/)
 
 <br/>     
 Enjoy!
