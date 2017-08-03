@@ -1,4 +1,4 @@
-_      = require '../../src/js/utils'
+_      = require './/utils'
 __id__ = 0
 
 
