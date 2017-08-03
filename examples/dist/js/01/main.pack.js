@@ -805,7 +805,7 @@ module.id = '../../src/js/view-node.js';
   rafTimeout = null;
 
   create = function(cfg, root) {
-    var clazz, node, tag;
+    var clazz, tag;
     if (root == null) {
       root = null;
     }
@@ -824,11 +824,7 @@ module.id = '../../src/js/view-node.js';
       }
     }
     clazz = clazz || ViewNode.DEFAULT_CLASS;
-    node = new clazz(cfg);
-    if (root !== null) {
-      render(node, root);
-    }
-    return node;
+    return new clazz(cfg);
   };
 
   register = function(node, cfg) {

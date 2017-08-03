@@ -96,11 +96,7 @@ create = (cfg, root = null) ->
             clazz = classMap[tag] if _.isString tag = tag or cfg.tag
 
     clazz = clazz or ViewNode.DEFAULT_CLASS
-    node  = new clazz cfg
-
-    if root != null #TODO: node.render() is called twice in this case - bad!!!
-        render(node, root)
-    node
+    new clazz cfg
 
 
 
