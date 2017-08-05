@@ -85,15 +85,14 @@ rafTimeout = null
 #    000       000   000  000       000   000     000     000     
 #     0000000  000   000  00000000  000   000     000     00000000
 
-create = (cfg, root = null) ->
+create = (cfg) ->
     if _.isNot cfg
         throw new Error "A node can't be created from empty cfg."
         
-    if not _.extendsNode clazz = cfg.clazz
-        if not _.extendsNode clazz = cfg.tag
-            clazz = null
-            tag   = cfg.nodeName.toLowerCase() if _.isDom cfg
-            clazz = classMap[tag] if _.isString tag = tag or cfg.tag
+    if not _.extendsNode clazz = cfg.clazz or cfg.tag
+        clazz = null
+        tag   = cfg.nodeName.toLowerCase() if _.isDom cfg
+        clazz = classMap[tag] if _.isString tag = tag or cfg.tag
 
     clazz = clazz or ViewNode.DEFAULT_CLASS
     new clazz cfg
@@ -108,28 +107,33 @@ create = (cfg, root = null) ->
 #    000   000  00000000   0000000   000  0000000      000     00000000  000   000
 
 register = (node, cfg) ->
-        node.parent = null
-        node.depth  = 0
-        node.keep   = false
-        if not node.__id__
-            node.__id__ = ++__id__
-            nodeMap[node.__id__] = node
-        node.__id__
-        injectNode node, cfg
-
-
-
-
-#    000  000   000        000  00000000   0000000  000000000        000   000   0000000   0000000    00000000
-#    000  0000  000        000  000       000          000           0000  000  000   000  000   000  000     
-#    000  000 0 000        000  0000000   000          000           000 0 000  000   000  000   000  0000000 
-#    000  000  0000  000   000  000       000          000           000  0000  000   000  000   000  000     
-#    000  000   000   0000000   00000000   0000000     000           000   000   0000000   0000000    00000000
-
-injectNode = (node, cfg) ->
+    node.parent = null
+    node.depth  = 0
+    node.keep   = false
+    if not node.__id__
+        node.__id__ = ++__id__
+        nodeMap[node.__id__] = node
     if _.isNot(node.__i__) and cfg and cfg.__i__
         inject    = node.__i__ = cfg.__i__
         node[key] = value for key, value of inject
+    node
+
+
+
+
+#    000   000  00000000   0000000     0000000   000000000  00000000        000   000   0000000   000   000
+#    000   000  000   000  000   000  000   000     000     000             0000  000  000   000  000 0 000
+#    000   000  00000000   000   000  000000000     000     0000000         000 0 000  000   000  000000000
+#    000   000  000        000   000  000   000     000     000             000  0000  000   000  000   000
+#     0000000   000        0000000    000   000     000     00000000        000   000   0000000   00     00
+
+updateNow = (node, cfg) ->
+    cfg = cfg or node.render()
+    node.createView cfg if _.isNot node.view
+    if _.isSimple(cfg) or (not cfg.tag and (_.isSimple(cfg.text) or _.isFunc(cfg.text)))
+        updateText node, cfg
+    else
+        updateProperties node, cfg
     node
 
 
@@ -144,7 +148,7 @@ injectNode = (node, cfg) ->
 createView = (node, cfg) ->
     if node.view
         throw new Error "View already exists"
-    if _.isNot cfg = node.render()
+    if _.isNot cfg
         throw new Error "A view for an empty cfg can't be created."
     switch true
         when _.isSimple  cfg then createTextView    node, node.cfg = text: cfg + ''
@@ -201,9 +205,9 @@ createTextFromDom = (node, cfg, dom) ->
 
 
 createTagView = (node, cfg) ->
-    node.tag  = tag = cfg.tag
+    node.tag  = cfg.tag
     node.kind = ViewNode.TAG_KIND
-    node.view = document.createElement tag
+    node.view = document.createElement cfg.tag
     node
 
 
@@ -214,24 +218,6 @@ createTagFromDom = (node, cfg, dom) ->
     node.view = dom
     cfg       = cfg or node.cfg = {}
     cfg.tag   = node.tag
-    node
-
-
-
-
-#    000   000  00000000   0000000     0000000   000000000  00000000        000   000   0000000   000   000
-#    000   000  000   000  000   000  000   000     000     000             0000  000  000   000  000 0 000
-#    000   000  00000000   000   000  000000000     000     0000000         000 0 000  000   000  000000000
-#    000   000  000        000   000  000   000     000     000             000  0000  000   000  000   000
-#     0000000   000        0000000    000   000     000     00000000        000   000   0000000   00     00
-
-updateNow = (node, cfg) ->
-    cfg = cfg or node.render()
-    node.createView cfg if _.isNot node.view
-    if _.isSimple(cfg) or (not cfg.tag and (_.isSimple(cfg.text) or _.isFunc(cfg.text)))
-        updateText node, cfg
-    else
-        updateProperties node, cfg
     node
 
 
