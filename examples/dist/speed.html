@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>React.js Performance Tests</title>
+    <link href="./css/bootstrap.css" rel="stylesheet">
+    <link href="./css/dashboard.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1>React.js Performance Tests</h1>
+    <br>
+    <div class="row">
+        <div class="col-sm-9">
+            <ul class="nav nav-pills">
+                <li role="presentation" class="active"><a href="http://localhost/my/two-trees/examples/dist/speed">two-trees</a></li>
+                <li role="presentation"><a href="http://localhost/thelma/react-performance-tests/public/dom.html">DOM</a></li>
+                <li role="presentation"><a href="http://localhost/thelma/react-performance-tests/public/preact.html">Preact</a></li>
+                <li role="presentation"><a href="http://localhost/thelma/react-performance-tests/public/react.html">React</a></li>
+                <li role="presentation"><a href="http://localhost/thelma/react-performance-tests/public/jquery.html">jQuery</a></li>
+                <li role="presentation"><a href="http://localhost/thelma/react-performance-tests/public/angular.html">Angular</a></li>
+                <li role="presentation"><a href="http://localhost/thelma/react-performance-tests/public/angular2.html">Angular2</a></li>
+            </ul>
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-sm-9">
+            <div id="dashboard"></div>
+        </div>
+        <div class="col-sm-3">
+            <div class="form-group">
+                <label for="total-input">Total: </label>
+                <input type="text" class="form-control init" id="total-input" value="20000">
+            </div>
+            <div class="form-group">
+                <label for="change-input">Change: </label>
+                <input type="text" class="form-control init" id="change-input" value="10000">
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="update-btn">Update</button>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="test-btn">Test</button>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="undo-btn">undo</button>
+            </div>
+            <div class="form-group">
+                <button type="button" class="btn btn-primary" id="redo-btn">redo</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="./libs/jquery.min.js"></script>
+<script src="./libs/data.js"></script>
+<script src="./js/06/main.pack.js"></script>
+<script>
+
+    var node, counter, startTime, treeTwo;
+
+    function initialize()
+    {
+        factory.init({
+            maxCount:$('#total-input').val(),
+            changeCount:$('#change-input').val()
+        });
+
+        startTime = Date.now();
+        app.setData(factory.data);
+        console.log('startup in: ', (Date.now() - startTime));
+    }
+
+
+    function update()
+    {
+        factory.update();
+        app.update(factory.data);
+    }
+
+    function startTest()
+    {
+        console.log('test starting...');
+        startTime = Date.now();
+        counter   = 0;
+        callUpdate();
+    }
+
+    function callUpdate()
+    {
+        console.log('call update: ' + counter + ', ' + (Date.now() - startTime) + 'ms')
+        update();
+        if(++counter <= 10)
+            setTimeout(callUpdate, 50);
+        else
+            console.log('completed in: ' + (Date.now() - startTime) + 'ms');
+    }
+
+
+    function undo()
+    {
+        app.undo();
+    }
+
+
+    function redo()
+    {
+        app.redo();
+    }
+
+
+    $(function()
+    {
+        initialize();
+        $('input.init').on('change', initialize);
+        $('#update-btn').on('click', update);
+        $('#test-btn').on('click', startTest);
+        $('#undo-btn').on('click', undo);
+        $('#redo-btn').on('click', redo);
+    });
+</script>
+</body>
+</html>
