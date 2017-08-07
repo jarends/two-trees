@@ -1,3 +1,8 @@
+_ = require './utils'
+
+
+
+
 #    000   000  000  00000000  000   000        000   000   0000000   0000000    00000000
 #    000   000  000  000       000 0 000        0000  000  000   000  000   000  000     
 #     000 000   000  0000000   000000000        000 0 000  000   000  000   000  0000000 
@@ -9,6 +14,8 @@ class ViewNode
     @DEBUG         = false
     @CHECK_DOM     = false
     @DEFAULT_CLASS = @
+    @TEXT_KIND     = 0
+    @TAG_KIND      = 1
 
     @create = (cfg) -> ViewTree.create cfg
     @map    = (tag, clazz, overwrite = false) -> ViewTree.map tag, clazz, overwrite
@@ -19,8 +26,9 @@ class ViewNode
         @updateCfg cfg
         @updateNow()
 
+
     register:   (cfg) -> ViewTree.register   @, cfg
-    updateNow:  (cfg) -> ViewTree.updateNow  @, cfg
+    updateNow:  ()    -> ViewTree.updateNow  @
     createView: (cfg) -> ViewTree.createView @, cfg
 
     # add nodes view to dom

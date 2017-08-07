@@ -1,4 +1,4 @@
-Node  = require '../../src/js/view-node'
+Node  = require '../../src/js/view-node-small'
 utils = require '../../src/js/utils'
 
 getTag  = (tag)  -> document.createElement  tag
@@ -7,6 +7,9 @@ getText = (text) -> document.createTextNode text
 class MyValidNode extends Node
     render: () -> tag: 'div'
 
+class MyMappedNode extends Node
+    render: () -> tag: 'main'
+
 class MyTextNode1 extends Node
     render: () -> 'text'
 
@@ -14,6 +17,8 @@ class MyTextNode2 extends Node
     render: () -> text: 'text'
 
 class MyExtendedNode extends Node
+
+Node.map 'main', MyMappedNode
 
 
 expectClass   = (node, clazz) -> expect(node.constructor).to.equal clazz
@@ -25,7 +30,7 @@ expectTextNode = (node, clazz, text) ->
     expectExtends node.view, Text
     expect(node.kind).to.equal Node.TEXT_KIND
     expect(node.view.nodeValue).to.equal text + ''
-    expect(node.text).to.equal text
+    expect(node.text).to.equal text + ''
 
 expectTagNode = (node, clazz, tag) ->
     expectClass   node, clazz
@@ -94,6 +99,12 @@ describe 'Node', () ->
 
         it "should return a valid tag node, if cfg.tag = HTMLELement", () ->
             expectTagNode Node.create(tag: getTag('div')), Node, 'div'
+
+        it "should return a valid tag node with mapped class, if cfg = HTMLELement", () ->
+            expectTagNode Node.create(getTag('main')), MyMappedNode, 'main'
+
+        it "should return a valid tag node with mapped class, if cfg.tag = HTMLELement", () ->
+            expectTagNode Node.create(tag: getTag('main')), MyMappedNode, 'main'
 
         it "should return a valid tag node, if cfg.tag = MyValidNode", () ->
             expectTagNode Node.create(tag: MyValidNode), MyValidNode, 'div'
@@ -366,16 +377,21 @@ describe 'node instance', () ->
             expect(parent.childNodes.length).to.equal 1
 
         it 'should throw an error if the dom is controlled by a node', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = true
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             expect(() -> node.appendTo parent.view).to.throw()
+            Node.CHECK_DOM = checkDom
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
+            checkDom = Node.CHECK_DOM
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             expect(() -> node.appendTo parent.view).to.not.throw()
             Node.CHECK_DOM = true
+            Node.CHECK_DOM = checkDom
 
 
     describe 'behind', () ->
@@ -401,18 +417,23 @@ describe 'node instance', () ->
             expect(parent.childNodes.length).to.equal 4
 
         it 'should throw an error if the doms parent is controlled by a node', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = true
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild prev = getTag 'div'
             expect(() -> node.behind prev).to.throw()
+            Node.CHECK_DOM = checkDom
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
+            checkDom = Node.CHECK_DOM
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild prev = getTag 'div'
             expect(() -> node.behind prev).to.not.throw()
             Node.CHECK_DOM = true
+            Node.CHECK_DOM = checkDom
 
 
     describe 'before', () ->
@@ -427,18 +448,23 @@ describe 'node instance', () ->
             expect(parent.childNodes.length).to.equal 3
 
         it 'should throw an error if the doms parent is controlled by a node', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = true
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild next = getTag 'div'
             expect(() -> node.before next).to.throw()
+            Node.CHECK_DOM = checkDom
 
         it 'should not throw an error if Node.CHECK_DOM = false', () ->
+            checkDom = Node.CHECK_DOM
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild next = getTag 'div'
             expect(() -> node.before next).to.not.throw()
             Node.CHECK_DOM = true
+            Node.CHECK_DOM = checkDom
 
 
     describe 'replace', () ->
@@ -452,31 +478,39 @@ describe 'node instance', () ->
             expect(parent.childNodes.length).to.equal 1
 
         it 'should throw an error if the doms parent is controlled by a node', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = true
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild old = getTag 'div'
             expect(() -> node.replace old).to.throw()
+            Node.CHECK_DOM = checkDom
 
         it 'should not throw an error for the doms parent if Node.CHECK_DOM = false', () ->
+            checkDom = Node.CHECK_DOM
             Node.CHECK_DOM = false
             parent = new Node tag:'div'
             node   = new Node tag:'div'
             parent.view.appendChild old = getTag 'div'
             expect(() -> node.replace old).to.not.throw()
-            Node.CHECK_DOM = true
+            Node.CHECK_DOM = checkDom
 
         it 'should throw an error if the dom is controlled by a node', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = true
             parent = getTag 'div'
             node   = new Node tag:'div'
             parent.appendChild old = (new Node tag:'div').view
             expect(() -> node.replace old).to.throw()
+            Node.CHECK_DOM = checkDom
 
         it 'should not throw an error for the dom if Node.CHECK_DOM = false', () ->
+            checkDom = Node.CHECK_DOM
             Node.CHECK_DOM = false
             parent = getTag 'div'
             node   = new Node tag:'div'
             parent.appendChild old = (new Node tag:'div').view
             expect(() -> node.replace old).to.not.throw()
-            Node.CHECK_DOM = true
+            Node.CHECK_DOM = checkDom
 
 

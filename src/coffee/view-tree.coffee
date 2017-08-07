@@ -53,7 +53,7 @@ class ViewTree
 
     constructor: () ->
         @classMap   = {}
-        @nodeMap    = {}
+        @nodeMap    = []
         @dirtyMap   = {}
         @cleanMap   = {}
         @domList    = []
@@ -118,7 +118,7 @@ class ViewTree
     updateNow: (node, cfg) ->
         cfg = cfg or node.render()
         cfg = node.createView cfg if not node.view
-        if node.view instanceof Text
+        if _.isDomText node.view
             @updateText node, cfg
         else
             @updateProperties node, cfg
@@ -258,10 +258,10 @@ class ViewTree
             else if not (node.tag == cfg.tag or node.constructor == cfg.tag)
                 @replaceChildNode node, cfg
             else
-                #display = node.view.style.display
-                #node.view.style.display = 'none'
+                display = node.view.style.display
+                node.view.style.display = 'none'
                 @updateProperties node, cfg
-                #node.view.style.display = display
+                node.view.style.display = display if node.view.style.display == 'none'
         @dirtyMap = {}
         null
 
@@ -277,8 +277,9 @@ class ViewTree
     updateText: (node, cfg) ->
         @cleanMap[node.__id__] = true
         text = if _.isFunc(cfg.text) then cfg.text() else if _.isString(cfg) then cfg else cfg.text
+        text = text + ''
         if node.text != text
-            node.text           = text + ''
+            node.text           = text
             node.view.nodeValue = text
         node
 
@@ -294,15 +295,9 @@ class ViewTree
     updateProperties: (node, cfg) ->
         @cleanMap[node.__id__] = true
 
-        cfg     = cfg.render() if cfg instanceof ViewNode
+        cfg     = cfg.render() if _.isNodeInstance cfg
         attrs   = node.attrs or node.attrs = {}
         propMap = Object.assign {}, attrs, node.events or {}, cfg
-
-        if propMap.hasOwnProperty 'className'
-            @updateClass node, cfg.className
-
-        if propMap.hasOwnProperty 'style'
-            @updateStyle node, cfg.style
 
         if propMap.hasOwnProperty 'text'
             text = text() if _.isFunc text = cfg.text
@@ -328,6 +323,15 @@ class ViewTree
         else if propMap.hasOwnProperty 'children'
             @updateChildren node, cfg.children
 
+        else if node.children and node.children.length
+            @updateChildren node
+
+        if propMap.hasOwnProperty 'className'
+            @updateClass node, cfg.className
+
+        if propMap.hasOwnProperty 'style'
+            @updateStyle node, cfg.style
+
         delete propMap.tag
         delete propMap.clazz
         delete propMap.__i__
@@ -346,7 +350,7 @@ class ViewTree
             if _.isBool(value) or (_.isNot(value) and _.isBool(attr))
                 @updateBool node, value, name
             else
-                if /^on/.test name
+                if name[0] == 'o' and name[1] == 'n'
                     @updateEvent node, value, name
                 else
                     value = value() if _.isFunc value
@@ -561,7 +565,7 @@ class ViewTree
         if node == cfg or node.constructor == cfg.tag
             @updateProperties node, node.render() if needsUpdate
 
-        else if node.tag != cfg.tag and (node.tag or cfg.tag) or cfg instanceof ViewNode
+        else if node.tag != cfg.tag and (node.tag or cfg.tag) or _.isNodeInstance cfg
             @replaceChildNode node, cfg
 
         else if not node.tag        # text node
@@ -582,7 +586,7 @@ class ViewTree
     #    000   000  0000000    0000000
 
     addChildNode: (node, cfg) ->
-        if cfg instanceof ViewNode
+        if _.isNodeInstance cfg
             child = cfg
         else
             cfg.__i__ = node.__i__ if not cfg.__i__
@@ -628,7 +632,7 @@ class ViewTree
 
         @disposeNode child
 
-        if cfg instanceof ViewNode
+        if _.isNodeInstance cfg
             child = cfg
             cfg   = child.render()
         else

@@ -33,3 +33,8 @@ button {
 button.active, button:active {
     background: orange;
 }
+
+
+.hidden-for-update {
+    display: none !important;
+}

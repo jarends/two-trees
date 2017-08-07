@@ -18,7 +18,8 @@
         "e02": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/02 ./examples/02-todo' 'wzp -w -em -im -bp ./examples/dist -p ./js/02/main.js'",
         "e03": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/03 ./examples/03-bindings' 'wzp -w -em -im -bp ./examples/dist -p ./js/03/main.js'",
         "e04": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/04 ./examples/04-stage' 'wzp -w -em -im -bp ./examples/dist -p ./js/04/main.js'",
-        "e": "concurrently -k -r  'npm run e-sass' 'npm run e-app' 'npm run e00' 'npm run e01' 'npm run e02' 'npm run e03' 'npm run e04'"
+        "e06": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/06 ./examples/06-speed' 'wzp -w -em -im -bp ./examples/dist -p ./js/06/main.js'",
+        "e": "concurrently -k -r  'npm run e-sass' 'npm run e-app' 'npm run e00' 'npm run e01' 'npm run e02' 'npm run e03' 'npm run e04' 'npm run e06'"
     },
     "repository": {
         "type": "git",
