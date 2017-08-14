@@ -232,7 +232,13 @@
           props.length = vl;
         }
       } else if (node.type === 'object') {
-        keys = Object.assign({}, props, value);
+        keys = {};
+        for (key in props) {
+          keys[key] = true;
+        }
+        for (key in value) {
+          keys[key] = true;
+        }
         for (key in keys) {
           this.updateProp(node, key);
         }

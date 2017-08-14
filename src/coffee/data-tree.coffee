@@ -210,7 +210,9 @@ class TreeTwo
                 props.length = vl
 
         else if node.type == 'object'
-            keys = Object.assign {}, props, value
+            keys = {} #Object.assign {}, props, value
+            keys[key] = true for key of props
+            keys[key] = true for key of value
             for key of keys
                 @updateProp node, key
         null

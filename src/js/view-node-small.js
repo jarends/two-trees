@@ -664,12 +664,12 @@
   dispose = function(node) {
     var child, j, len, ref;
     if (node.onUnmount() !== true) {
-      this.removeEvents(node);
+      node.removeEvents();
       if (node.children && node.children.length) {
         ref = node.children;
         for (j = 0, len = ref.length; j < len; j++) {
           child = ref[j];
-          this.disposeNode(child);
+          dispose(child);
         }
       }
       delete node.children;

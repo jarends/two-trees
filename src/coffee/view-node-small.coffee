@@ -702,17 +702,17 @@ create = (cfg) ->
 
 
 #    0000000    000   0000000  00000000    0000000    0000000  00000000
-#    000   000  000  000       000   000  000   000  000       000     
-#    000   000  000  0000000   00000000   000   000  0000000   0000000 
-#    000   000  000       000  000        000   000       000  000     
+#    000   000  000  000       000   000  000   000  000       000
+#    000   000  000  0000000   00000000   000   000  0000000   0000000
+#    000   000  000       000  000        000   000       000  000
 #    0000000    000  0000000   000         0000000   0000000   00000000
 
 dispose = (node) ->
     if node.onUnmount() != true
-        @removeEvents node
+        node.removeEvents()
 
         if node.children and node.children.length
-            @disposeNode child for child in node.children
+            dispose child for child in node.children
 
         delete node.children
         delete node.view

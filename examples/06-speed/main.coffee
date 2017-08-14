@@ -29,27 +29,27 @@ class App
 
     setData: (@data) ->
         #console.log 'setData'
-        #@model = new DataTree @data
+        @model = new DataTree @data
         @dashboard = new Dashboard data: @data
         @dashboard.appendTo document.getElementById 'dashboard'
 
 
     update: (@data) ->
         #console.log 'update'
-        #@model.update(@data)
+        @model.update(@data)
         @dashboard.update()
 
 
     undo: () ->
         #console.log 'undo'
-        #@model.undo()
-        #@dashboard.update()
+        @model.undo()
+        @dashboard.update()
 
 
     redo: () ->
         #console.log 'redo'
-        #@model.redo()
-        #@dashboard.update()
+        @model.redo()
+        @dashboard.update()
 
 
 window.app = new App()

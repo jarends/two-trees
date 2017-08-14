@@ -6,7 +6,7 @@ class DashboardItem extends ViewNode
 
 
     updateCfg: (cfg) ->
-        #return false if @item == cfg.item
+        return false if @item == cfg.item
         (@item = cfg.item) or true
 
 
