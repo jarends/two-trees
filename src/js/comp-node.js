@@ -4,18 +4,14 @@
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
-  ViewNode = require('./view-node');
+  ViewNode = require('./view-node-small');
 
   CompNode = (function(superClass) {
     extend(CompNode, superClass);
 
-    function CompNode() {
-      return CompNode.__super__.constructor.apply(this, arguments);
-    }
-
-    CompNode.prototype.register = function(cfg) {
+    function CompNode(cfg) {
       var binding, bindings, i, len;
-      CompNode.__super__.register.call(this, cfg);
+      CompNode.__super__.constructor.call(this, cfg);
       this.paths = [];
       if (typeof cfg === 'object') {
         if (!this.tree) {
@@ -32,8 +28,8 @@
           }
         }
       }
-      return this;
-    };
+      this;
+    }
 
     CompNode.prototype.onUnmount = function() {
       this.unbindAll();

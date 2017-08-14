@@ -1,10 +1,10 @@
-ViewNode = require './view-node'
+ViewNode = require './view-node-small'
 
 
 class CompNode extends ViewNode
 
 
-    register: (cfg) ->
+    constructor: (cfg) ->
         super cfg
 
         @paths = []

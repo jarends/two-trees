@@ -75,10 +75,8 @@ class ViewTree
 
         if not _.extendsNode clazz = cfg.clazz or cfg.tag
             clazz = null
-            if _.isDom cfg
-                tag = cfg.nodeName.toLowerCase()
-            else if _.isDom cfg.tag
-                tag = cfg.tag.nodeName.toLowerCase()
+            if _.isDom(dom = cfg) or _.isDom(dom = cfg.tag)
+                tag = dom.nodeName.toLowerCase()
             clazz = @classMap[tag] if _.isString tag = tag or cfg.tag
 
         clazz = clazz or ViewNode.DEFAULT_CLASS
@@ -318,7 +316,7 @@ class ViewTree
 
             if ViewNode.DEBUG
                 if cfg.hasOwnProperty 'children'
-                    console.warn 'children specified while text exists', cfg
+                    console.warn 'children specified while child exists', cfg
 
         else if propMap.hasOwnProperty 'children'
             @updateChildren node, cfg.children

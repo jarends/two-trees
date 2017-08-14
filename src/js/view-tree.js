@@ -57,16 +57,14 @@
     }
 
     ViewTree.prototype.create = function(cfg) {
-      var clazz, tag;
+      var clazz, dom, tag;
       if (_.isNot(cfg)) {
         throw new Error("A node can't be created from empty cfg.");
       }
       if (!_.extendsNode(clazz = cfg.clazz || cfg.tag)) {
         clazz = null;
-        if (_.isDom(cfg)) {
-          tag = cfg.nodeName.toLowerCase();
-        } else if (_.isDom(cfg.tag)) {
-          tag = cfg.tag.nodeName.toLowerCase();
+        if (_.isDom(dom = cfg) || _.isDom(dom = cfg.tag)) {
+          tag = dom.nodeName.toLowerCase();
         }
         if (_.isString(tag = tag || cfg.tag)) {
           clazz = this.classMap[tag];
@@ -323,7 +321,7 @@
         this.updateChildren(node, [child]);
         if (ViewNode.DEBUG) {
           if (cfg.hasOwnProperty('children')) {
-            console.warn('children specified while text exists', cfg);
+            console.warn('children specified while child exists', cfg);
           }
         }
       } else if (propMap.hasOwnProperty('children')) {
