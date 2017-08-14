@@ -16,7 +16,7 @@ model = new DataTree
 
 
 app = new AppView
-    __i__:
+    inject:
         tree: model
 
 
