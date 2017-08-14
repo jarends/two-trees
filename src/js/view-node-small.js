@@ -583,7 +583,7 @@
         if (child === cfg) {
           child.updateNow();
         } else {
-          this.replaceChild(child, cfg);
+          child = this.replaceChild(child, cfg);
         }
       } else if (_.isString(child.tag)) {
         if (child.tag === cfg.tag || child.constructor === cfg.tag) {
@@ -591,7 +591,7 @@
             child.updateProps(child.render());
           }
         } else {
-          this.replaceChild(child, cfg);
+          child = this.replaceChild(child, cfg);
         }
       } else if (_.isSimple(child.text)) {
         if (_.isSimple(cfg) || _.isSimple(cfg.text)) {
@@ -599,10 +599,10 @@
             child.updateText(child.render());
           }
         } else {
-          this.replaceChild(child, cfg);
+          child = this.replaceChild(child, cfg);
         }
       } else {
-        this.replaceChild(child, cfg);
+        child = this.replaceChild(child, cfg);
       }
       return child;
     };

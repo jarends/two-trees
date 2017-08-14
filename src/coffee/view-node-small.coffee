@@ -606,7 +606,7 @@ class ViewNode
             if child == cfg
                 child.updateNow()
             else
-                @replaceChild child, cfg
+                child = @replaceChild child, cfg
 
         else if _.isString child.tag
 
@@ -614,7 +614,7 @@ class ViewNode
                 if child.updateCfg cfg
                     child.updateProps child.render()
             else
-                @replaceChild child, cfg
+                child = @replaceChild child, cfg
 
         else if _.isSimple child.text
 
@@ -622,9 +622,9 @@ class ViewNode
                 if child.updateCfg cfg
                     child.updateText child.render()
             else
-                @replaceChild child, cfg
+                child = @replaceChild child, cfg
         else
-            @replaceChild child, cfg
+            child = @replaceChild child, cfg
         child
 
 
