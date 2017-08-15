@@ -45,7 +45,7 @@ class ViewNode
         @keep   = false
         @__id__ = ++__id__
         nodeMap[@__id__] = @
-        if _.isNot(@inject) and cfg.inject
+        if _.isNot(@inject) and cfg and cfg.inject
             inject = @inject = cfg.inject
             @[key] = value for key, value of inject
         @updateCfg cfg

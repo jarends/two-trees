@@ -51,7 +51,7 @@
       this.keep = false;
       this.__id__ = ++__id__;
       nodeMap[this.__id__] = this;
-      if (_.isNot(this.inject) && cfg.inject) {
+      if (_.isNot(this.inject) && cfg && cfg.inject) {
         inject = this.inject = cfg.inject;
         for (key in inject) {
           value = inject[key];

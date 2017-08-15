@@ -18,6 +18,10 @@ class MyTextNode2 extends Node
 
 class MyExtendedNode extends Node
 
+class MyNodeWithEmptyCfg extends Node
+    constructor: () -> super()
+    render: () -> tag: 'div'
+
 Node.map 'main', MyMappedNode
 
 
@@ -166,6 +170,9 @@ describe 'Node', () ->
 describe 'new Node', () ->
 
     describe 'init', () ->
+
+        it "should return a valid extended node, if no cfg is specified", () ->
+            expectTagNode new MyNodeWithEmptyCfg(), MyNodeWithEmptyCfg, 'div'
 
         it "should return a valid text node, if cfg = 'text'", () ->
             expectTextNode new Node('text'), Node, 'text'
@@ -514,3 +521,10 @@ describe 'node instance', () ->
             Node.CHECK_DOM = checkDom
 
 
+    describe 'addChild', () ->
+
+        it 'should add a child node', () ->
+            child  = new Node tag:'div'
+            parent = new Node tag:'div'
+            parent.addChild child
+            expect(parent.children[0]).to.equal child
