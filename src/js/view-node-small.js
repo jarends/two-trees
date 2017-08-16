@@ -161,7 +161,7 @@
 
     ViewNode.prototype.onAddedToDom = function() {
       var child, j, len, ref;
-      ref = this.children;
+      ref = this.children != null;
       for (j = 0, len = ref.length; j < len; j++) {
         child = ref[j];
         child.onAddedToDom();
@@ -171,7 +171,7 @@
 
     ViewNode.prototype.onRemovedFromDom = function() {
       var child, j, len, ref;
-      ref = this.children;
+      ref = this.children != null;
       for (j = 0, len = ref.length; j < len; j++) {
         child = ref[j];
         child.onRemovedFromDom();

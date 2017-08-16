@@ -145,12 +145,12 @@ class ViewNode
 
 
     onAddedToDom: () ->
-        child.onAddedToDom() for child in @children
+        child.onAddedToDom() for child in @children?
         @
 
 
     onRemovedFromDom: () ->
-        child.onRemovedFromDom() for child in @children
+        child.onRemovedFromDom() for child in @children?
         @
 
 
