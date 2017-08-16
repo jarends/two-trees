@@ -161,20 +161,24 @@
 
     ViewNode.prototype.onAddedToDom = function() {
       var child, j, len, ref;
-      ref = this.children != null;
-      for (j = 0, len = ref.length; j < len; j++) {
-        child = ref[j];
-        child.onAddedToDom();
+      if (this.children) {
+        ref = this.children;
+        for (j = 0, len = ref.length; j < len; j++) {
+          child = ref[j];
+          child.onAddedToDom();
+        }
       }
       return this;
     };
 
     ViewNode.prototype.onRemovedFromDom = function() {
       var child, j, len, ref;
-      ref = this.children != null;
-      for (j = 0, len = ref.length; j < len; j++) {
-        child = ref[j];
-        child.onRemovedFromDom();
+      if (this.children) {
+        ref = this.children;
+        for (j = 0, len = ref.length; j < len; j++) {
+          child = ref[j];
+          child.onRemovedFromDom();
+        }
       }
       return this;
     };
