@@ -66,6 +66,7 @@ class ViewNode
         checkDom dom if ViewNode.CHECK_DOM
         dom.appendChild @view
         @onMount()
+        @onAddedToDom()
         @
 
 
@@ -80,6 +81,7 @@ class ViewNode
         else
             parent.appendChild @view
         @onMount()
+        @onAddedToDom()
         @
 
 
@@ -90,6 +92,7 @@ class ViewNode
         checkDom parent if ViewNode.CHECK_DOM
         parent.insertBefore @view, dom
         @onMount()
+        @onAddedToDom()
         @
 
 
@@ -102,6 +105,7 @@ class ViewNode
             checkDom dom
         parent.replaceChild @view, dom
         @onMount()
+        @onRemovedFromDom()
         @
 
 
@@ -111,7 +115,7 @@ class ViewNode
         parent = node.view.parentNode
         checkDom parent if ViewNode.CHECK_DOM
         parent.removeChild @view
-        @onUnount()
+        @onUnmount()
         @
 
 
@@ -139,6 +143,8 @@ class ViewNode
     onMount:   () ->
     onUnmount: () -> @keep
 
+    onAddedToDom:     () -> child.onAddedToDom()     for child of @children
+    onRemovedFromDom: () -> child.onRemovedFromDom() for child of @children
 
 
 
@@ -216,6 +222,7 @@ class ViewNode
                 @text = dom.nodeValue = text + ''
         else
             @cfg = text: @text + ''
+        @cfg.tag = undefined
         #console.log 'createTextFromDom', @text, @view.nodeValue
         @
 
@@ -290,11 +297,6 @@ class ViewNode
         @attrs    = @attrs    or {}
         @events   = @events   or {}
         @children = @children or []
-        propMap   = {} #Object.assign {}, @attrs, @events, cfg -> mutch slower on google
-
-        propMap[key] = true for key of cfg
-        propMap[key] = true for key of @attrs
-        propMap[key] = true for key of @events
 
         if cfg.text != undefined
             @updateChildren [cfg.text]
@@ -326,6 +328,11 @@ class ViewNode
 
         if cfg.style != undefined or @attrs.style != undefined
             @updateStyle cfg.style
+
+        propMap      = {}
+        propMap[key] = true for key of cfg
+        propMap[key] = true for key of @attrs
+        propMap[key] = true for key of @events
 
         ignore = ViewNode.IGNORES
         for name of propMap

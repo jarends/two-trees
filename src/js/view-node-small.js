@@ -71,6 +71,7 @@
       }
       dom.appendChild(this.view);
       this.onMount();
+      this.onAddedToDom();
       return this;
     };
 
@@ -90,6 +91,7 @@
         parent.appendChild(this.view);
       }
       this.onMount();
+      this.onAddedToDom();
       return this;
     };
 
@@ -104,6 +106,7 @@
       }
       parent.insertBefore(this.view, dom);
       this.onMount();
+      this.onAddedToDom();
       return this;
     };
 
@@ -119,6 +122,7 @@
       }
       parent.replaceChild(this.view, dom);
       this.onMount();
+      this.onRemovedFromDom();
       return this;
     };
 
@@ -132,7 +136,7 @@
         checkDom(parent);
       }
       parent.removeChild(this.view);
-      this.onUnount();
+      this.onUnmount();
       return this;
     };
 
@@ -153,6 +157,24 @@
 
     ViewNode.prototype.onUnmount = function() {
       return this.keep;
+    };
+
+    ViewNode.prototype.onAddedToDom = function() {
+      var child, results;
+      results = [];
+      for (child in this.children) {
+        results.push(child.onAddedToDom());
+      }
+      return results;
+    };
+
+    ViewNode.prototype.onRemovedFromDom = function() {
+      var child, results;
+      results = [];
+      for (child in this.children) {
+        results.push(child.onRemovedFromDom());
+      }
+      return results;
     };
 
     ViewNode.prototype.populate = function() {
@@ -234,6 +256,7 @@
           text: this.text + ''
         };
       }
+      this.cfg.tag = void 0;
       return this;
     };
 
@@ -294,16 +317,6 @@
       this.attrs = this.attrs || {};
       this.events = this.events || {};
       this.children = this.children || [];
-      propMap = {};
-      for (key in cfg) {
-        propMap[key] = true;
-      }
-      for (key in this.attrs) {
-        propMap[key] = true;
-      }
-      for (key in this.events) {
-        propMap[key] = true;
-      }
       if (cfg.text !== void 0) {
         this.updateChildren([cfg.text]);
         if (ViewNode.DEBUG) {
@@ -335,6 +348,16 @@
       }
       if (cfg.style !== void 0 || this.attrs.style !== void 0) {
         this.updateStyle(cfg.style);
+      }
+      propMap = {};
+      for (key in cfg) {
+        propMap[key] = true;
+      }
+      for (key in this.attrs) {
+        propMap[key] = true;
+      }
+      for (key in this.events) {
+        propMap[key] = true;
       }
       ignore = ViewNode.IGNORES;
       for (name in propMap) {
