@@ -143,9 +143,15 @@ class ViewNode
     onMount:   () ->
     onUnmount: () -> @keep
 
-    onAddedToDom:     () -> child.onAddedToDom()     for child of @children
-    onRemovedFromDom: () -> child.onRemovedFromDom() for child of @children
 
+    onAddedToDom: () ->
+        child.onAddedToDom() for child in @children
+        @
+
+
+    onRemovedFromDom: () ->
+        child.onRemovedFromDom() for child in @children
+        @
 
 
     #    00000000    0000000   00000000   000   000  000       0000000   000000000  00000000

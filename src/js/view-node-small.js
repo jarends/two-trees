@@ -160,21 +160,23 @@
     };
 
     ViewNode.prototype.onAddedToDom = function() {
-      var child, results;
-      results = [];
-      for (child in this.children) {
-        results.push(child.onAddedToDom());
+      var child, j, len, ref;
+      ref = this.children;
+      for (j = 0, len = ref.length; j < len; j++) {
+        child = ref[j];
+        child.onAddedToDom();
       }
-      return results;
+      return this;
     };
 
     ViewNode.prototype.onRemovedFromDom = function() {
-      var child, results;
-      results = [];
-      for (child in this.children) {
-        results.push(child.onRemovedFromDom());
+      var child, j, len, ref;
+      ref = this.children;
+      for (j = 0, len = ref.length; j < len; j++) {
+        child = ref[j];
+        child.onRemovedFromDom();
       }
-      return results;
+      return this;
     };
 
     ViewNode.prototype.populate = function() {
