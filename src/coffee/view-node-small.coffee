@@ -811,6 +811,28 @@ unmap = (tag) ->
 
 
 
+callResize = (node) ->
+    node.onResize() if node.onResize
+    if node.children
+        callResize child for child in node.children
+    node
+
+
+
+
+handleResize = () ->
+    for key, node of nodeMap
+        callResize node if not node.parent and node.view
+    null
+
+
+
+
+window.addEventListener 'resize', handleResize
+
+
+
+
 ViewNode.create = create
 ViewNode.map    = map
 ViewNode.unmap  = unmap
