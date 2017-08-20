@@ -1,0 +1,49 @@
+body {
+  background: #282828;
+  color: #ff2;
+}
+
+h1 {
+  color: #ff2;
+}
+
+.snap {
+    position: relative;
+    left:     0;
+    width:    100%;
+}
+
+.bg {
+  fill: #000;
+}
+
+.title {
+  fill: #aaa;
+  font-family: "verdana";
+  font-size: 12px;
+}
+.long {
+  stroke: #00f;
+  stroke-linecap: round;
+}
+.mid {
+  stroke: #f80;
+  stroke-linecap: round;
+}
+.short {
+  stroke: #ff0;
+  stroke-linecap: round;
+}
+.time {
+  stroke: #222;
+}
+.vert {
+  stroke: #282828;
+}
+
+#log {
+  position: fixed;
+  color: #fff;
+  font-family: "courier";
+  font-size: 11px;
+}
