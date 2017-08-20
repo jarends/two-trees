@@ -6,6 +6,7 @@ EXAMPLES = [
     '01-simple'
     '02-todo'
     '03-bindings'
+    '05-quandl'
     '06-speed'
 ]
 
@@ -15,7 +16,7 @@ class IFrame extends CompNode
     render: () ->
         tag: 'iframe'
         className: 'iframe'
-        src: '../02-todo'
+        src: '../02-todo/index.html'
 
 
 
@@ -42,19 +43,16 @@ class AppView extends CompNode
         className: 'row'
         children: [
             tag:   'div'
-            style: 'flex: 300px 0 1; min-width: 200px;'
+            style: 'flex: 200px 0 1; min-width: 200px;'
             child:
                 tag:       'div'
                 className: 'menu'
                 children: [
-                    tag: 'h2', text: 'two-trees examples'
+                    tag: 'img'
+                    src: '../../img/two-trees-icon-256.png'
                 ,
                     tag:       'ol'
                     children: @getLink e for e in EXAMPLES
-
-                ,
-                    tag: 'img'
-                    src: '../../img/two-trees-icon-256.png'
                 ]
         ,
             tag:   'div'

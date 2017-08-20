@@ -129,9 +129,11 @@ html, body {
     padding: 0;
     border-top: 1px solid grey; }
   .menu > img {
-    position: absolute;
-    bottom: 0;
-    width: 100%; }
+    width: 150px;
+    height: 170px;
+    display: block;
+    margin: auto;
+    padding-top: 20px; }
 
 .menu-link,
 .menu-link:hover,
