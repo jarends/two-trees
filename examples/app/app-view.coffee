@@ -31,7 +31,7 @@ class AppView extends CompNode
         tag:       'a'
         className: 'menu-link'
         text:      e
-        onClick:   () => @iframe.view.src = '../' + e
+        onClick:   () => @iframe.view.src = "../#{e}/index.html"
 
         
     render: ->
