@@ -88,6 +88,10 @@ html, body {
     background: white;
     outline: none;
     cursor: pointer;
+
+    &.selected {
+        background: orange;
+    }
 }
 
 h1 {

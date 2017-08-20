@@ -155,6 +155,11 @@ html, body {
   background: white;
   outline: none;
   cursor: pointer; }
+  .menu-link.selected,
+  .menu-link:hover.selected,
+  .menu-link:active.selected,
+  .menu-link:visited.selected {
+    background: orange; }
 
 h1 {
   -webkit-user-select: none;

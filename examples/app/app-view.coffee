@@ -1,4 +1,4 @@
-CompNode = require('../two-trees').CompNode
+ViewNode = require('../two-trees').ViewNode
 
 
 EXAMPLES = [
@@ -11,35 +11,42 @@ EXAMPLES = [
 ]
 
 
-class IFrame extends CompNode
-
-    render: () ->
-        tag: 'iframe'
-        className: 'iframe'
-        src: '../02-todo/index.html'
+class AppView extends ViewNode
 
 
-
-class AppView extends CompNode
-
-
-    updateCfg: (cfg) ->
+    constructor: () ->
         super()
-        @data = @tree.root
+        window.addEventListener 'hashchange', @updateHash
+
+
+    updateCfg: () -> @updateHash()
+
+
+    updateHash: (event) =>
+        event.preventDefault() if event
+        hash = window.location.hash.slice 1
+        if EXAMPLES.indexOf(hash) == -1
+            hash = @e ? EXAMPLES[0]
+
+        @update() if @e
+        if window.location.hash != hash
+           window.location.hash = hash
+        @e = hash
+        true
+
+
+    showExample: (e) -> window.location.hash = e
 
 
     getLink: (e) ->
         tag:       'a'
-        className: 'menu-link'
+        className: 'menu-link' + if e == @e then ' selected' else ''
         text:      e
-        onClick:   () => @iframe.view.src = "../#{e}/index.html"
+        onClick:   () => @showExample e
 
-        
+
     render: ->
-
-        @iframe = new IFrame() if not @iframe
-
-        tag: 'div'
+        tag:       'div'
         className: 'row'
         children: [
             tag:   'div'
@@ -47,18 +54,21 @@ class AppView extends CompNode
             child:
                 tag:       'div'
                 className: 'menu'
-                children: [
+                children:  [
                     tag: 'img'
                     src: '../../img/two-trees-icon-256.png'
                 ,
-                    tag:       'ol'
+                    tag:      'ol'
                     children: @getLink e for e in EXAMPLES
                 ]
         ,
-            tag:   'div'
+            tag:       'div'
             className: 'examples'
-            style: 'flex: 0px 1 0;'
-            child: @iframe
+            style:     'flex: 0px 1 0;'
+            child:
+                tag:       'iframe'
+                className: 'iframe'
+                src:       "../#{@e}/index.html"
         ]
 
 
