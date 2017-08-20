@@ -1,7 +1,7 @@
 trees    = require '../two-trees'
 AppView  = require './app-view'
 DataTree = trees.DataTree
-ViewNode = trees.ViewNodeSmall
+ViewNode = trees.ViewNode
 CompNode = trees.CompNode
 
 

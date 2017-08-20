@@ -1,12 +1,11 @@
 trees    = require '../two-trees'
 AppView  = require './app-view'
-ViewTree = trees.ViewTree
 DataTree = trees.DataTree
 CompNode = trees.CompNode
 Node     = trees.Node
 
 
-ViewTree.DEFAULT_CLASS = CompNode
+ViewNode.DEFAULT_CLASS = CompNode
 
 
 model = new DataTree

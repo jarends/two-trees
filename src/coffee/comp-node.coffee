@@ -1,4 +1,4 @@
-ViewNode = require './view-node-small'
+ViewNode = require './view-node'
 
 
 class CompNode extends ViewNode

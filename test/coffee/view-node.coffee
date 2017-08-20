@@ -1,4 +1,4 @@
-Node  = require '../../src/js/view-node-small'
+Node  = require '../../src/js/view-node'
 utils = require '../../src/js/utils'
 
 getTag  = (tag)  -> document.createElement  tag

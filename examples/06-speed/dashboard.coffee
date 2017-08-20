@@ -1,4 +1,4 @@
-ViewNode = require('../two-trees').ViewNodeSmall
+ViewNode = require('../two-trees').ViewNode
 
 
 window.renderCalls = 0
