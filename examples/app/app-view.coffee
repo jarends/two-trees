@@ -38,33 +38,29 @@ class AppView extends CompNode
 
         @iframe = new IFrame() if not @iframe
 
-        tag:      'div'
-        className: 'content'
+        tag: 'div'
+        className: 'row'
         children: [
-            tag: 'div'
-            className: 'row'
-            children: [
-                tag:   'div'
-                style: 'flex: 300px 0 1; min-width: 200px;'
-                child:
-                    tag:       'div'
-                    className: 'menu'
-                    children: [
-                        tag: 'h2', text: 'two-trees examples'
-                    ,
-                        tag:       'ol'
-                        children: @getLink e for e in EXAMPLES
+            tag:   'div'
+            style: 'flex: 300px 0 1; min-width: 200px;'
+            child:
+                tag:       'div'
+                className: 'menu'
+                children: [
+                    tag: 'h2', text: 'two-trees examples'
+                ,
+                    tag:       'ol'
+                    children: @getLink e for e in EXAMPLES
 
-                    ,
-                        tag: 'img'
-                        src: '../../img/two-trees-icon-256.png'
-                    ]
-            ,
-                tag:   'div'
-                className: 'examples'
-                style: 'flex: 0px 1 0;'
-                child: @iframe
-            ]
+                ,
+                    tag: 'img'
+                    src: '../../img/two-trees-icon-256.png'
+                ]
+        ,
+            tag:   'div'
+            className: 'examples'
+            style: 'flex: 0px 1 0;'
+            child: @iframe
         ]
 
 
