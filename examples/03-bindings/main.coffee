@@ -16,7 +16,7 @@ model = new DataTree
 
 app = ViewNode.create
     tag: AppView
-    __i__:
+    inject:
         tree: model
 
 
