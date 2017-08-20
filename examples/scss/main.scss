@@ -1,3 +1,11 @@
+@import "./resizer";
+
+*, *:before, *:after {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+}
+
 html, body {
     font-family: Verdana, Arial, Helvetica, _sans;
     color:       #000000;
@@ -10,8 +18,67 @@ html, body {
     -webkit-text-size-adjust: 100%;
 }
 
-h1 {
+.app {
+    width: 100%;
+    height: 100%;
+}
+
+.content {
+    width: 100%;
+    height: 100%;
+}
+
+.examples {
+}
+
+.iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.menu {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-right: 1px solid grey;
+
+    h2 {
+        margin: 0;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    > ol {
+        padding: 0;
+        border-top: 1px solid grey;
+    }
+
+    > img {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+    }
+}
+
+.menu-link,
+.menu-link:hover,
+.menu-link:active,
+.menu-link:visited {
+
+    display: block;
+    color: #000000;
+    text-decoration: none;
+    padding: 10px;
+    border-bottom: 1px solid grey;
+    border-radius: 0px;
+    background: white;
+    outline: none;
     cursor: pointer;
+}
+
+h1 {
+    //cursor: pointer;
 
     -webkit-user-select: none;
        -moz-user-select: none;
@@ -34,7 +101,3 @@ button.active, button:active {
     background: orange;
 }
 
-
-.hidden-for-update {
-    display: none !important;
-}

@@ -1,3 +1,97 @@
+/*
+//    00000000    0000000   000   000
+//    000   000  000   000  000 0 000
+//    0000000    000   000  000000000
+//    000   000  000   000  000   000
+//    000   000   0000000   00     00
+*/
+.row {
+  display: flex;
+  flex-direction: row;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%; }
+  .row > * {
+    top: 0;
+    height: 100%; }
+
+/*
+//     0000000   0000000   000    
+//    000       000   000  000    
+//    000       000   000  000    
+//    000       000   000  000    
+//     0000000   0000000   0000000
+*/
+.col {
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%; }
+  .col > * {
+    left: 0;
+    width: 100%; }
+
+/*
+//    00000000   00000000   0000000  000  0000000  00000000  00000000 
+//    000   000  000       000       000     000   000       000   000
+//    0000000    0000000   0000000   000    000    0000000   0000000  
+//    000   000  000            000  000   000     000       000   000
+//    000   000  00000000  0000000   000  0000000  00000000  000   000
+*/
+.resizer {
+  position: relative;
+  flex: 0 0 0; }
+
+/*
+//    000   000   0000000   00000000   000  0000000   0000000   000   000  000000000   0000000   000    
+//    000   000  000   000  000   000  000     000   000   000  0000  000     000     000   000  000    
+//    000000000  000   000  0000000    000    000    000   000  000 0 000     000     000000000  000    
+//    000   000  000   000  000   000  000   000     000   000  000  0000     000     000   000  000    
+//    000   000   0000000   000   000  000  0000000   0000000   000   000     000     000   000  0000000
+*/
+.h-resizer {
+  height: 100%; }
+  .h-resizer:after {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 6px;
+    left: -3px;
+    cursor: col-resize;
+    z-index: 1; }
+
+.h-resize-global {
+  cursor: col-resize; }
+
+/*
+//    000   000  00000000  00000000   000000000  000   0000000   0000000   000    
+//    000   000  000       000   000     000     000  000       000   000  000    
+//     000 000   0000000   0000000       000     000  000       000000000  000    
+//       000     000       000   000     000     000  000       000   000  000    
+//        0      00000000  000   000     000     000   0000000  000   000  0000000
+*/
+.v-resizer {
+  width: 100%; }
+  .v-resizer:after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 8px;
+    top: -4px;
+    cursor: row-resize;
+    z-index: 1; }
+
+.v-resize-global {
+  cursor: row-resize; }
+
+*, *:before, *:after {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box; }
+
 html, body {
   font-family: Verdana, Arial, Helvetica, _sans;
   color: #000000;
@@ -8,8 +102,51 @@ html, body {
   height: 100%;
   -webkit-text-size-adjust: 100%; }
 
+.app {
+  width: 100%;
+  height: 100%; }
+
+.content {
+  width: 100%;
+  height: 100%; }
+
+.iframe {
+  width: 100%;
+  height: 100%;
+  border: none; }
+
+.menu {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-right: 1px solid grey; }
+  .menu h2 {
+    margin: 0;
+    padding-top: 10px;
+    padding-bottom: 10px; }
+  .menu > ol {
+    padding: 0;
+    border-top: 1px solid grey; }
+  .menu > img {
+    position: absolute;
+    bottom: 0;
+    width: 100%; }
+
+.menu-link,
+.menu-link:hover,
+.menu-link:active,
+.menu-link:visited {
+  display: block;
+  color: #000000;
+  text-decoration: none;
+  padding: 10px;
+  border-bottom: 1px solid grey;
+  border-radius: 0px;
+  background: white;
+  outline: none;
+  cursor: pointer; }
+
 h1 {
-  cursor: pointer;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -25,8 +162,5 @@ button {
 
 button.active, button:active {
   background: orange; }
-
-.hidden-for-update {
-  display: none !important; }
 
 /*# sourceMappingURL=main.css.map */

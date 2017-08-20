@@ -1,4 +1,23 @@
-trees = require '../two-trees'
+trees    = require '../two-trees'
+AppView  = require './app-view'
+DataTree = trees.DataTree
+ViewNode = trees.ViewNode
+CompNode = trees.CompNode
 
 
-console.log 'app running!!!', trees
+ViewNode.DEFAULT_CLASS = CompNode
+
+
+model = new DataTree
+    tasks:    []
+    numDone:  0
+    numTotal: 0
+    filter:   'all'
+
+
+app = new AppView
+    inject:
+        tree: model
+
+
+app.appendTo document.querySelector '.app'
