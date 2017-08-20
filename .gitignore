@@ -7,3 +7,4 @@
 /src/js/node.js.map
 /test/js
 *.map
+/examples/dist/js
