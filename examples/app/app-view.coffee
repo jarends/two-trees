@@ -7,7 +7,7 @@ EXAMPLES = [
     '02-todo'
     '03-bindings'
     '05-quandl'
-    '06-speed'
+    #'06-speed'
 ]
 
 

@@ -104,6 +104,13 @@ html, body {
 
 .app {
   width: 100%;
+  height: 100%; }
+  .app > :first-child {
+    height: 100%;
+    overflow: auto; }
+
+.example-app {
+  width: 100%;
   height: 100%;
   overflow: hidden; }
 

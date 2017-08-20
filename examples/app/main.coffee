@@ -20,4 +20,4 @@ app = new AppView
         tree: model
 
 
-app.appendTo document.querySelector '.app'
+app.appendTo document.querySelector '.example-app'
