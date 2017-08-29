@@ -20,6 +20,7 @@
         "e04": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/04 ./examples/04-stage' 'wzp -w -em -im -bp ./examples/dist -p ./js/04/main.js'",
         "e05": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/05 ./examples/05-quandl' 'wzp -w -em -im -bp ./examples/dist -p ./js/05/main.js'",
         "e06": "concurrently -k -r 'coffee -w -m -o ./examples/dist/js/06 ./examples/06-speed' 'wzp -w -em -im -bp ./examples/dist -p ./js/06/main.js'",
+        "e07": "concurrently -k -r 'tsc -w -p ./examples/07-typescript/tsconfig.json' 'wzp -w -em -im -bp ./examples/dist -p ./js/07/main.js'",
         "e": "concurrently -k -r  'npm run e-sass' 'npm run e-app' 'npm run e00' 'npm run e01' 'npm run e02' 'npm run e03' 'npm run e04' 'npm run e05' 'npm run e06'"
     },
     "repository": {
@@ -53,6 +54,8 @@
         "mocha": "^3.4.2",
         "node-sass": "^4.5.3",
         "salter": "^1.1.4",
+        "typescript": "^2.4.2",
         "werkzeug-packer": "0.0.1"
-    }
+    },
+    "typings": "./index.d.ts"
 }

@@ -45,10 +45,10 @@
 
     function ViewNode(cfg) {
       this.update = bind(this.update, this);
-      var inject, key, value;
+      var inject, key, ref, value;
       this.parent = null;
       this.depth = 0;
-      this.keep = false;
+      this.keep = (ref = cfg != null ? cfg.keep : void 0) != null ? ref : false;
       this.__id__ = ++__id__;
       nodeMap[this.__id__] = this;
       if (_.isNot(this.inject) && cfg && cfg.inject) {
@@ -642,7 +642,7 @@
       children = this.children;
       i = children.indexOf(child);
       view = child.view;
-      this.disposeNode(child);
+      dispose(child);
       if (_.isNodeInstance(cfg)) {
         child = cfg;
         if (child.parent) {

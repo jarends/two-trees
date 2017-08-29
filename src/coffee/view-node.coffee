@@ -42,7 +42,7 @@ class ViewNode
     constructor: (cfg) ->
         @parent = null
         @depth  = 0
-        @keep   = false
+        @keep   = cfg?.keep ? false;
         @__id__ = ++__id__
         nodeMap[@__id__] = @
         if _.isNot(@inject) and cfg and cfg.inject
@@ -657,7 +657,7 @@ class ViewNode
         i        = children.indexOf child
         view     = child.view
 
-        @disposeNode child
+        dispose child
 
         if _.isNodeInstance cfg
             child = cfg
