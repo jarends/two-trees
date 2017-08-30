@@ -58,6 +58,7 @@
           this[key] = value;
         }
       }
+      this.init();
       this.updateCfg(cfg);
       this.populate();
     }
@@ -139,6 +140,8 @@
       this.onUnmount();
       return this;
     };
+
+    ViewNode.prototype.init = function() {};
 
     ViewNode.prototype.updateCfg = function(cfg1) {
       this.cfg = cfg1;
