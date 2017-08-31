@@ -1,6 +1,13 @@
 Node  = require '../../src/js/view-node'
 utils = require '../../src/js/utils'
 
+
+#    000   000  000000000  000  000       0000000
+#    000   000     000     000  000      000     
+#    000   000     000     000  000      0000000 
+#    000   000     000     000  000           000
+#     0000000      000     000  0000000  0000000 
+
 getTag  = (tag)  -> document.createElement  tag
 getText = (text) -> document.createTextNode text
 
@@ -362,10 +369,6 @@ describe 'new Node', () ->
 
 
 
-
-
-
-
 #    000  000   000   0000000  000000000   0000000   000   000   0000000  00000000
 #    000  0000  000  000          000     000   000  0000  000  000       000
 #    000  000 0 000  0000000      000     000000000  000 0 000  000       0000000
@@ -373,6 +376,13 @@ describe 'new Node', () ->
 #    000  000   000  0000000      000     000   000  000   000   0000000  00000000
 
 describe 'node instance', () ->
+
+
+    #     0000000   00000000   00000000   00000000  000   000  000000000        000000000   0000000 
+    #    000   000  000   000  000   000  000       0000  000     000              000     000   000
+    #    000000000  00000000   00000000   0000000   000 0 000     000              000     000   000
+    #    000   000  000        000        000       000  0000     000              000     000   000
+    #    000   000  000        000        00000000  000   000     000              000      0000000 
 
     describe 'appendTo', () ->
 
@@ -400,6 +410,12 @@ describe 'node instance', () ->
             Node.CHECK_DOM = true
             Node.CHECK_DOM = checkDom
 
+
+    #    0000000    00000000  000   000  000  000   000  0000000  
+    #    000   000  000       000   000  000  0000  000  000   000
+    #    0000000    0000000   000000000  000  000 0 000  000   000
+    #    000   000  000       000   000  000  000  0000  000   000
+    #    0000000    00000000  000   000  000  000   000  0000000  
 
     describe 'behind', () ->
 
@@ -443,6 +459,12 @@ describe 'node instance', () ->
             Node.CHECK_DOM = checkDom
 
 
+    #    0000000    00000000  00000000   0000000   00000000   00000000
+    #    000   000  000       000       000   000  000   000  000     
+    #    0000000    0000000   000000    000   000  0000000    0000000 
+    #    000   000  000       000       000   000  000   000  000     
+    #    0000000    00000000  000        0000000   000   000  00000000
+
     describe 'before', () ->
 
         it 'should prepand the nodes view before the dom', () ->
@@ -473,6 +495,12 @@ describe 'node instance', () ->
             Node.CHECK_DOM = true
             Node.CHECK_DOM = checkDom
 
+
+    #    00000000   00000000  00000000   000       0000000    0000000  00000000
+    #    000   000  000       000   000  000      000   000  000       000     
+    #    0000000    0000000   00000000   000      000000000  000       0000000 
+    #    000   000  000       000        000      000   000  000       000     
+    #    000   000  00000000  000        0000000  000   000   0000000  00000000
 
     describe 'replace', () ->
 
@@ -521,6 +549,12 @@ describe 'node instance', () ->
             Node.CHECK_DOM = checkDom
 
 
+    #     0000000   0000000    0000000     0000000  000   000  000  000      0000000  
+    #    000   000  000   000  000   000  000       000   000  000  000      000   000
+    #    000000000  000   000  000   000  000       000000000  000  000      000   000
+    #    000   000  000   000  000   000  000       000   000  000  000      000   000
+    #    000   000  0000000    0000000     0000000  000   000  000  0000000  0000000  
+
     describe 'addChild', () ->
 
         it 'should add a child node', () ->
@@ -528,3 +562,143 @@ describe 'node instance', () ->
             parent = new Node tag:'div'
             parent.addChild child
             expect(parent.children[0]).to.equal child
+
+
+
+
+#     0000000  000       0000000    0000000   0000000        000   000   0000000   00     00  00000000
+#    000       000      000   000  000       000             0000  000  000   000  000   000  000     
+#    000       000      000000000  0000000   0000000         000 0 000  000000000  000000000  0000000 
+#    000       000      000   000       000       000        000  0000  000   000  000 0 000  000     
+#     0000000  0000000  000   000  0000000   0000000         000   000  000   000  000   000  00000000
+
+describe 'className', () ->
+
+
+    #     0000000    0000000         0000000   0000000          000  00000000   0000000  000000000
+    #    000   000  000             000   000  000   000        000  000       000          000   
+    #    000000000  0000000         000   000  0000000          000  0000000   000          000   
+    #    000   000       000        000   000  000   000  000   000  000       000          000   
+    #    000   000  0000000          0000000   0000000     0000000   00000000   0000000     000   
+
+    describe 'as object', () ->
+
+        it 'should have the classes test-a and test-b', () ->
+            node = new Node
+                tag:       'div'
+                className:
+                    'test-a':true
+                    'test-b':true
+
+            cl = node.view.classList
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal true
+
+        it 'should have the classes test-a and not test-b', () ->
+            node = new Node
+                tag:       'div'
+                className:
+                    'test-a':true
+                    'test-b':false
+
+            cl = node.view.classList
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal false
+
+        it 'should have the class test-a after removing test-b', () ->
+            cfg =
+                tag: 'div'
+                className:
+                    'test-a': true
+                    'test-b': true
+
+            node = new Node cfg
+            cl   = node.view.classList
+            cfg.className =
+                'test-a': true
+                'test-b': false
+            node.updateNow()
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal false
+
+        it 'should have the classes test-a and test-c after removing test-b', () ->
+            cfg =
+                tag: 'div'
+                className:
+                    'test-a': true
+                    'test-b': true
+
+            node = new Node cfg
+            cl   = node.view.classList
+            cfg.className =
+                'test-a': true
+                'test-c': true
+
+            node.updateNow()
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal false
+            expect(cl.contains 'test-c').to.equal true
+
+
+    #     0000000    0000000         0000000   00000000   00000000    0000000   000   000
+    #    000   000  000             000   000  000   000  000   000  000   000   000 000 
+    #    000000000  0000000         000000000  0000000    0000000    000000000    00000  
+    #    000   000       000        000   000  000   000  000   000  000   000     000   
+    #    000   000  0000000         000   000  000   000  000   000  000   000     000   
+
+    describe 'as array', () ->
+
+        it 'should have the classes test-a and test-b', () ->
+            node = new Node
+                tag:       'div'
+                className: [
+                    ['test-a', true]
+                    ['test-b', true]
+                ]
+
+            cl = node.view.classList
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal true
+
+        it 'should have the classes test-a and not test-b', () ->
+            node = new Node
+                tag:       'div'
+                className: [
+                    ['test-a', true]
+                    ['test-b', false]
+                ]
+
+            cl = node.view.classList
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal false
+
+        it 'should have the class test-a after removing test-b', () ->
+            cfg =
+                tag:       'div'
+                className: [
+                    ['test-a', true]
+                    ['test-b', true]
+                ]
+
+            node = new Node cfg
+            cl   = node.view.classList
+            cfg.className[1][1] = false
+            node.updateNow()
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal false
+
+        it 'should have the classes test-a and test-c after removing test-b', () ->
+            cfg =
+                tag:       'div'
+                className: [
+                    ['test-a', true]
+                    ['test-b', true]
+                ]
+
+            node = new Node cfg
+            cl   = node.view.classList
+            cfg.className[1][0] = 'test-c'
+            node.updateNow()
+            expect(cl.contains 'test-a').to.equal true
+            expect(cl.contains 'test-b').to.equal false
+            expect(cl.contains 'test-c').to.equal true

@@ -438,19 +438,60 @@
     };
 
     ViewNode.prototype.updateClassName = function(value) {
+      var ca, changed, cl, clazz, cn, contains, j, len, use, v;
       if (_.isFunc(value)) {
         value = value();
       }
-      this.attrs.className = this.view.className;
-      if (this.attrs.className === value) {
+      this.attrs.className = cn = this.view.className;
+      if (cn === value) {
         return;
       }
-      if (value) {
-        this.view.className = value;
-        this.attrs.className = value;
+      if (_.isNot(value)) {
+        if (cn !== value) {
+          this.view.className = void 0;
+          delete this.attrs.className;
+        }
+      } else if (_.isString(value)) {
+        if (cn !== value) {
+          this.view.className = value;
+          this.attrs.className = value;
+        }
       } else {
-        this.view.className = void 0;
-        delete this.attrs.className;
+        cl = this.view.classList;
+        ca = [];
+        changed = false;
+        if (_.isArray(value)) {
+          for (j = 0, len = value.length; j < len; j++) {
+            v = value[j];
+            clazz = v[0];
+            use = v[1];
+            contains = cl.contains(clazz);
+            if (use) {
+              ca.push(clazz);
+              changed = changed || !contains;
+            } else {
+              changed = changed || contains;
+            }
+          }
+        } else {
+          for (clazz in value) {
+            use = value[clazz];
+            contains = cl.contains(clazz);
+            if (use) {
+              ca.push(clazz);
+              if (!contains) {
+                changed = true;
+              }
+            } else {
+              if (contains) {
+                changed = true;
+              }
+            }
+          }
+        }
+        if (changed) {
+          this.attrs.className = this.view.className = ca.join(' ');
+        }
       }
       return this;
     };

@@ -434,14 +434,43 @@ class ViewNode
     updateClassName: (value) ->
         value = value() if _.isFunc value
 
-        @attrs.className = @view.className
-        return if @attrs.className == value
-        if value
-            @view.className  = value
-            @attrs.className = value
+        @attrs.className = cn = @view.className
+        return if cn == value
+
+        if _.isNot value
+            if cn != value
+                @view.className  = undefined
+                delete @attrs.className
+
+        else if _.isString value
+            if cn != value
+                @view.className  = value
+                @attrs.className = value
+
         else
-            @view.className  = undefined
-            delete @attrs.className
+            cl      = @view.classList
+            ca      = []
+            changed = false
+            if _.isArray value
+                for v in value
+                    clazz    = v[0]
+                    use      = v[1]
+                    contains = cl.contains clazz
+                    if use
+                        ca.push clazz
+                        changed = changed or not contains
+                    else
+                        changed = changed or contains
+            else
+                for clazz, use of value
+                    contains = cl.contains clazz
+                    if use
+                        ca.push clazz
+                        changed = true if not contains
+                    else
+                        changed = true if contains
+            if changed
+                @attrs.className = @view.className = ca.join ' '
         @
 
 
