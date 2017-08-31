@@ -307,8 +307,8 @@
 
     ViewNode.prototype.updateText = function(cfg) {
       var text;
-      if (!_.isString(text = cfg)) {
-        if (!_.isString(text = cfg.text)) {
+      if (!_.isString(text = cfg + '')) {
+        if (!_.isString(text = cfg.text + '')) {
           if (_.isFunc(text)) {
             text = text();
           }

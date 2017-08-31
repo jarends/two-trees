@@ -702,3 +702,43 @@ describe 'className', () ->
             expect(cl.contains 'test-a').to.equal true
             expect(cl.contains 'test-b').to.equal false
             expect(cl.contains 'test-c').to.equal true
+
+
+#    000   000  00000000   0000000     0000000   000000000  00000000        000000000  00000000  000   000  000000000         0000000  000   000  000  000      0000000  
+#    000   000  000   000  000   000  000   000     000     000                000     000        000 000      000           000       000   000  000  000      000   000
+#    000   000  00000000   000   000  000000000     000     0000000            000     0000000     00000       000           000       000000000  000  000      000   000
+#    000   000  000        000   000  000   000     000     000                000     000        000 000      000           000       000   000  000  000      000   000
+#     0000000   000        0000000    000   000     000     00000000           000     00000000  000   000     000            0000000  000   000  000  0000000  0000000  
+
+describe 'update text child', () ->
+
+    it 'should update the string value of a text child', () ->
+        cfg =
+            tag:  'div'
+            text: 'hello'
+        node = new Node cfg
+        expectTextNode node.children[0], Node, 'hello'
+        cfg.text = 'world'
+        node.updateNow()
+        expectTextNode node.children[0], Node, 'world'
+
+    it 'should update the number value of a text child', () ->
+        cfg =
+            tag:  'div'
+            text: 1
+        node = new Node cfg
+        expectTextNode node.children[0], Node, 1
+        cfg.text = 2
+        node.updateNow()
+        expectTextNode node.children[0], Node, 2
+
+    it 'should update the boolean value of a text child', () ->
+        cfg =
+            tag:  'div'
+            text: true
+        node = new Node cfg
+        expectTextNode node.children[0], Node, true
+        cfg.text = false
+        node.updateNow()
+        expectTextNode node.children[0], Node, false
+

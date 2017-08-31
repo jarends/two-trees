@@ -294,8 +294,8 @@ class ViewNode
     #       000     00000000  000   000     000   
 
     updateText: (cfg) ->
-        if not _.isString text = cfg
-            if not _.isString text = cfg.text
+        if not _.isString text = cfg + ''
+            if not _.isString text = cfg.text + ''
                 text = text() if _.isFunc text
         text += ''
         if @text != text
