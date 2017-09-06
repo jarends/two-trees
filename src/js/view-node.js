@@ -58,8 +58,8 @@
           this[key] = value;
         }
       }
-      this.init();
       this.updateCfg(cfg);
+      this.init();
       this.populate();
     }
 

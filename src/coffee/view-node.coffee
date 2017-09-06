@@ -48,8 +48,8 @@ class ViewNode
         if _.isNot(@inject) and cfg and cfg.inject
             inject = @inject = cfg.inject
             @[key] = value for key, value of inject
-        @init()
         @updateCfg cfg
+        @init()
         @populate()
 
 
