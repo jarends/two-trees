@@ -8,6 +8,7 @@ isDom          = (value) -> value and value.nodeType == 1
 isDomText      = (value) -> value and value.nodeType == 3
 isNot          = (value) -> value == null or value == undefined
 isSimple       = (value) -> (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
+isSimpleOrNull = (value) -> value == null or (t = typeof value) == 'string' or t == 'number' or t == 'boolean'
 extendsNode    = (value) -> isFunc(value) and (isFunc(value.prototype.render) or value == ViewNode)
 isNodeInstance = (value) -> value and value.__id__ and value.render
 isArray        = Array.isArray
@@ -35,6 +36,7 @@ module.exports =
     isDomText:      isDomText
     isNot:          isNot
     isSimple:       isSimple
+    isSimpleOrNull: isSimpleOrNull
     extendsNode:    extendsNode
     normalizeName:  normalizeName
     normalizeEvent: normalizeEvent

@@ -93,6 +93,15 @@ describe 'Node', () ->
         it "should return a valid text node, if cfg.text = 'text'", () ->
             expectTextNode Node.create(text: 'text'), Node, 'text'
 
+        it "should return a valid text node, if cfg.text = null", () ->
+            expectTextNode Node.create(text: null), Node, null
+
+        it "should return a valid text node, if cfg.text = false", () ->
+            expectTextNode Node.create(text: false), Node, false
+
+        it "should return a valid text node, if cfg.text = 0", () ->
+            expectTextNode Node.create(text: 0), Node, 0
+
         it "should return a valid text node, if cfg.tag = Text", () ->
             expectTextNode Node.create(tag: getText('text')), Node, 'text'
 
@@ -140,7 +149,7 @@ describe 'Node', () ->
             expect(() -> Node.create(tag: () ->)).to.throw()
 
         it "should throw an error, if cfg.text is invalid", () ->
-            expect(() -> Node.create(text: null)).to.throw()
+            expect(() -> Node.create(text: undefined)).to.throw()
             expect(() -> Node.create(text: {})).to.throw()
             expect(() -> Node.create(text: [])).to.throw()
             expect(() -> Node.create(text: () ->)).to.throw()
@@ -189,6 +198,16 @@ describe 'new Node', () ->
 
         it "should return a valid text node, if cfg.text = 'text'", () ->
             expectTextNode new Node(text: 'text'), Node, 'text'
+            expectTextNode new Node(getText('text')), Node, 'text'
+
+        it "should return a valid text node, if cfg.text = null", () ->
+            expectTextNode new Node(text: null), Node, null
+
+        it "should return a valid text node, if cfg.text = false", () ->
+            expectTextNode new Node(text: false), Node, false
+
+        it "should return a valid text node, if cfg.text = 0", () ->
+            expectTextNode new Node(text: 0), Node, 0
 
         it "should return a valid text node, if cfg.tag = Text", () ->
             expectTextNode new Node(tag: getText('text')), Node, 'text'
@@ -218,7 +237,7 @@ describe 'new Node', () ->
             expect(() -> new Node tag: Node).to.throw()
 
         it "should throw an error, if cfg.text is invalid", () ->
-            expect(() -> new Node text: null).to.throw()
+            expect(() -> new Node text: undefined ).to.throw()
             expect(() -> new Node text: {}).to.throw()
             expect(() -> new Node text: []).to.throw()
             expect(() -> new Node text: () ->).to.throw()

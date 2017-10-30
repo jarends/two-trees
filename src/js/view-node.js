@@ -208,7 +208,7 @@
         this.createTagFromDom(cfg, tag);
       } else if (_.isDomText(tag)) {
         this.createTextFromDom(cfg, tag);
-      } else if (_.isSimple(text = cfg.text) || _.isFunc(text)) {
+      } else if (_.isSimpleOrNull(text = cfg.text) || _.isFunc(text)) {
         this.createTextView(cfg);
       } else {
         if (_.extendsNode(tag)) {
@@ -228,7 +228,7 @@
       if (_.isFunc(text)) {
         text = text();
       }
-      if (!_.isSimple(text)) {
+      if (!_.isSimpleOrNull(text)) {
         throw new Error("The text for a text node must be either a string, number or bool or a function returning one of these types.");
       }
       this.text = text + '';
@@ -307,12 +307,9 @@
 
     ViewNode.prototype.updateText = function(cfg) {
       var text;
-      if (!_.isString(text = cfg + '')) {
-        if (!_.isString(text = cfg.text + '')) {
-          if (_.isFunc(text)) {
-            text = text();
-          }
-        }
+      text = _.isSimpleOrNull(cfg) ? cfg : cfg.text;
+      if (_.isFunc(text)) {
+        text = text();
       }
       text += '';
       if (this.text !== text) {
@@ -602,7 +599,7 @@
         if (_.isFunc(cfg)) {
           cfg = cfg();
         }
-        hasCfg = cfg !== void 0 && cfg !== null;
+        hasCfg = cfg !== void 0;
         if (!child && !hasCfg) {
           throw new Error(("DOM ERROR: either child or cfg at index " + i + " must be defined. Got ") + child + ', ' + cfg);
         }
@@ -652,6 +649,7 @@
     };
 
     ViewNode.prototype.changeChild = function(child, cfg) {
+      var text;
       if (_.isNodeInstance(cfg)) {
         if (child === cfg) {
           child.updateNow();
@@ -667,7 +665,11 @@
           child = this.replaceChild(child, cfg);
         }
       } else if (_.isSimple(child.text)) {
-        if (_.isSimple(cfg) || _.isSimple(cfg.text)) {
+        text = _.isSimpleOrNull(cfg) ? cfg : cfg.text;
+        if (_.isFunc(text)) {
+          text = text();
+        }
+        if (_.isSimpleOrNull(text)) {
           if (child.updateCfg(cfg)) {
             child.updateText(child.render());
           }

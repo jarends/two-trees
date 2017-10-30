@@ -109,7 +109,7 @@ class ViewNode
         @onRemovedFromDom()
         @
 
-
+    # TODO: FIX ERROR -> node must be @
     remove: () ->
         if @parent
             throw new Error 'Please remove node from parent node instead of removing from real dom.'
@@ -197,7 +197,7 @@ class ViewNode
         else if _.isDomText tag
             @createTextFromDom cfg, tag
 
-        else if _.isSimple(text = cfg.text) or _.isFunc text
+        else if _.isSimpleOrNull(text = cfg.text) or _.isFunc text # TODO: inconsistent with updateProps -> CHECK!!!
             @createTextView cfg
 
         else
@@ -214,7 +214,7 @@ class ViewNode
     createTextView: (cfg) ->
         text = cfg.text
         text = text() if _.isFunc text
-        if not _.isSimple text
+        if not _.isSimpleOrNull text
             throw new Error "The text for a text node must be either a string, number or bool or a function returning one of these types."
         @text = text + ''
         @tag  = cfg.tag  = undefined
@@ -294,9 +294,8 @@ class ViewNode
     #       000     00000000  000   000     000   
 
     updateText: (cfg) ->
-        if not _.isString text = cfg + ''
-            if not _.isString text = cfg.text + ''
-                text = text() if _.isFunc text
+        text = if _.isSimpleOrNull(cfg) then cfg else cfg.text
+        text = text() if _.isFunc text
         text += ''
         if @text != text
             @text = @view.nodeValue = text
@@ -583,7 +582,7 @@ class ViewNode
             child  = children[i]
             cfg    = cfgs[i]
             cfg    = cfg() if _.isFunc cfg
-            hasCfg = cfg != undefined and cfg != null
+            hasCfg = cfg != undefined
 
             if not child and not hasCfg
                 throw new Error "DOM ERROR: either child or cfg at index #{i} must be defined. Got " + child + ', ' + cfg
@@ -671,8 +670,9 @@ class ViewNode
                 child = @replaceChild child, cfg
 
         else if _.isSimple child.text
-
-            if (_.isSimple(cfg) or _.isSimple(cfg.text))
+            text = if _.isSimpleOrNull(cfg) then cfg else cfg.text
+            text = text() if _.isFunc text
+            if (_.isSimpleOrNull text)
                 if child.updateCfg cfg
                     child.updateText child.render()
             else
