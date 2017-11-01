@@ -643,7 +643,14 @@
     };
 
     ViewNode.prototype.removeChild = function(child) {
-      this.view.removeChild(child.view);
+      var index;
+      index = this.children.indexOf(child);
+      if (index > -1) {
+        this.children.splice(index, 1);
+      }
+      if (this.view.contains(child.view)) {
+        this.view.removeChild(child.view);
+      }
       dispose(child);
       return child;
     };

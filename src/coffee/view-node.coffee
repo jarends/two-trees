@@ -640,7 +640,11 @@ class ViewNode
     #    000   000  00000000  000   000   0000000       0      00000000
 
     removeChild: (child) ->
-        @view.removeChild child.view
+        index = @children.indexOf child
+        if index > -1
+            @children.splice index, 1
+        if @view.contains child.view
+            @view.removeChild child.view
         dispose child
         child
 
