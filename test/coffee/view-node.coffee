@@ -29,6 +29,20 @@ class MyNodeWithEmptyCfg extends Node
     constructor: () -> super()
     render: () -> tag: 'div'
 
+class MyCallbackNode extends Node
+    call: (name) ->
+        @called = @called or {}
+        @called[name] = true
+
+    onMount:          () -> @call 'onMount'
+    onUnmount:        () -> @call 'onUnmount'
+    onAddedToDom:     () -> @call 'onAddedToDom'
+    onRemovedFromDom: () -> @call 'onRemovedFromDom'
+
+    render: () -> tag: 'div'
+
+
+
 Node.map 'main', MyMappedNode
 
 
@@ -142,17 +156,17 @@ describe 'Node', () ->
             expect(() -> Node.create(tag: MyExtendedNode)).to.throw()
 
         it "should throw an error, if cfg.tag is invalid", () ->
-            expect(() -> Node.create(tag: 1)).to.throw()
-            expect(() -> Node.create(tag: true)).to.throw()
-            expect(() -> Node.create(tag: {})).to.throw()
-            expect(() -> Node.create(tag: [])).to.throw()
+            expect(() -> Node.create(tag: 1))    .to.throw()
+            expect(() -> Node.create(tag: true)) .to.throw()
+            expect(() -> Node.create(tag: {}))   .to.throw()
+            expect(() -> Node.create(tag: []))   .to.throw()
             expect(() -> Node.create(tag: () ->)).to.throw()
 
         it "should throw an error, if cfg.text is invalid", () ->
             expect(() -> Node.create(text: undefined)).to.throw()
-            expect(() -> Node.create(text: {})).to.throw()
-            expect(() -> Node.create(text: [])).to.throw()
-            expect(() -> Node.create(text: () ->)).to.throw()
+            expect(() -> Node.create(text: {}))      .to.throw()
+            expect(() -> Node.create(text: []))      .to.throw()
+            expect(() -> Node.create(text: () ->))   .to.throw()
             expect(() -> Node.create(text: () -> {})).to.throw()
             expect(() -> Node.create(text: () -> [])).to.throw()
 
@@ -568,6 +582,34 @@ describe 'node instance', () ->
             Node.CHECK_DOM = checkDom
 
 
+    describe 'remove', () ->
+
+        it 'should remove the nodes view from the dom', () ->
+            parent = getTag 'div'
+            node   = new Node tag:'div'
+            node.appendTo parent
+            node.remove()
+            expect(parent.childNodes.length).to.equal 0
+
+        it 'should throw an error if the doms parent is controlled by a node', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = true
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.addChild node
+            expect(() -> node.remove()).to.throw()
+            Node.CHECK_DOM = checkDom
+
+        it 'should not throw an error for the doms parent if Node.CHECK_DOM = false', () ->
+            checkDom = Node.CHECK_DOM
+            Node.CHECK_DOM = false
+            parent = new Node tag:'div'
+            node   = new Node tag:'div'
+            parent.view.appendChild node.view
+            expect(() -> node.remove()).to.not.throw()
+            Node.CHECK_DOM = checkDom
+
+
 
 
     #     0000000   0000000    0000000     0000t000  000   000  000  000      0000000
@@ -743,6 +785,8 @@ describe 'className', () ->
             expect(cl.contains 'test-c').to.equal true
 
 
+
+
 #    000   000  00000000   0000000     0000000   000000000  00000000        000000000  00000000  000   000  000000000         0000000  000   000  000  000      0000000  
 #    000   000  000   000  000   000  000   000     000     000                000     000        000 000      000           000       000   000  000  000      000   000
 #    000   000  00000000   000   000  000000000     000     0000000            000     0000000     00000       000           000       000000000  000  000      000   000
@@ -781,3 +825,36 @@ describe 'update text child', () ->
         node.updateNow()
         expectTextNode node.children[0], Node, false
 
+
+
+
+describe 'callbacks', () ->
+
+    describe 'onMount', () ->
+
+        it 'should be called, if node is added to another node', () ->
+            node   = new MyCallbackNode()
+            new Node { tag: 'div', child: node }
+            expect(node.called['onMount']).to.equal true
+
+        it 'should be called, if node replaces another node', () ->
+            node   = new MyCallbackNode()
+            other  = new Node tag: 'div'
+            parent = new Node { tag: 'div', child: other }
+            parent.replaceChild other, node
+            expect(node.called['onMount']).to.equal true
+
+    describe 'onMount', () ->
+
+        it 'should be called, if node is removed from another node', () ->
+            node   = new MyCallbackNode()
+            parent = new Node { tag: 'div', child: node }
+            parent.removeChild node
+            expect(node.called['onUnmount']).to.equal true
+
+        it 'should be called, if node is replaced by another node', () ->
+            node   = new MyCallbackNode()
+            other  = new Node tag: 'div'
+            parent = new Node { tag: 'div', child: node }
+            parent.replaceChild node, other
+            expect(node.called['onUnmount']).to.equal true

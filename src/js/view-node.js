@@ -24,7 +24,7 @@
 
     ViewNode.DEFAULT_CLASS = ViewNode;
 
-    ViewNode.CHECK_DOM = true;
+    ViewNode.CHECK_DOM = false;
 
     ViewNode.TAG_KIND = 1;
 
@@ -73,7 +73,6 @@
       }
       dom.appendChild(this.view);
       this.onMount();
-      this.onAddedToDom();
       return this;
     };
 
@@ -93,7 +92,6 @@
         parent.appendChild(this.view);
       }
       this.onMount();
-      this.onAddedToDom();
       return this;
     };
 
@@ -108,7 +106,6 @@
       }
       parent.insertBefore(this.view, dom);
       this.onMount();
-      this.onAddedToDom();
       return this;
     };
 
@@ -124,7 +121,6 @@
       }
       parent.replaceChild(this.view, dom);
       this.onMount();
-      this.onRemovedFromDom();
       return this;
     };
 
@@ -133,7 +129,7 @@
       if (this.parent) {
         throw new Error('Please remove node from parent node instead of removing from real dom.');
       }
-      parent = node.view.parentNode;
+      parent = this.view.parentNode;
       if (ViewNode.CHECK_DOM) {
         checkDom(parent);
       }
@@ -161,30 +157,6 @@
 
     ViewNode.prototype.onUnmount = function() {
       return this.keep;
-    };
-
-    ViewNode.prototype.onAddedToDom = function() {
-      var child, j, len, ref;
-      if (this.children) {
-        ref = this.children;
-        for (j = 0, len = ref.length; j < len; j++) {
-          child = ref[j];
-          child.onAddedToDom();
-        }
-      }
-      return this;
-    };
-
-    ViewNode.prototype.onRemovedFromDom = function() {
-      var child, j, len, ref;
-      if (this.children) {
-        ref = this.children;
-        for (j = 0, len = ref.length; j < len; j++) {
-          child = ref[j];
-          child.onRemovedFromDom();
-        }
-      }
-      return this;
     };
 
     ViewNode.prototype.populate = function() {
@@ -321,6 +293,10 @@
 
     ViewNode.prototype.updateProps = function(cfg) {
       var attr, ignore, key, name, propMap, value;
+      if (this.updating) {
+        console.error('Already updating: ', this);
+      }
+      this.updating = true;
       this.attrs = this.attrs || {};
       this.events = this.events || {};
       this.children = this.children || [];
@@ -390,6 +366,7 @@
           }
         }
       }
+      this.updating = false;
       return this;
     };
 
@@ -587,7 +564,7 @@
 
     ViewNode.prototype.updateChildren = function(cfgs) {
       var cfg, child, children, hasCfg, i, j, l, newL, oldL, ref;
-      children = this.children;
+      children = this.children.concat();
       if (_.isSimple(cfgs)) {
         cfgs = [cfgs];
       }
@@ -612,8 +589,8 @@
           this.changeChild(child, cfg);
         }
       }
-      if (newL !== oldL && newL !== children.length) {
-        children.length = newL;
+      if (newL !== oldL && newL !== this.children.length) {
+        this.children.length = newL;
       }
       return this;
     };
@@ -715,6 +692,7 @@
       child.parent = this;
       child.depth = this.depth + 1;
       this.view.replaceChild(child.view, view);
+      child.onMount();
       return child;
     };
 
@@ -844,13 +822,15 @@
     return null;
   };
 
-  window.addEventListener('resize', handleResize);
-
   ViewNode.create = create;
 
   ViewNode.map = map;
 
   ViewNode.unmap = unmap;
+
+  ViewNode.callResize = callResize;
+
+  ViewNode.handleResize = handleResize;
 
   ViewNode["default"] = ViewNode;
 

@@ -2,7 +2,7 @@ getOrCall      = (value) -> if isFunc(value) then value() else value
 isBool         = (value) -> typeof value == 'boolean'
 isNumber       = (value) -> typeof value == 'number'
 isString       = (value) -> typeof value == 'string'
-isObject       = (value) -> typeof value == 'object'
+isObject       = (value) -> value and typeof value == 'object' and not isArray value
 isFunc         = (value) -> typeof value == 'function'
 isDom          = (value) -> value and value.nodeType == 1
 isDomText      = (value) -> value and value.nodeType == 3

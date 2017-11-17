@@ -20,8 +20,8 @@ class ViewNode
 
 
     @DEBUG         = false
-    @DEFAULT_CLASS = @
-    @CHECK_DOM     = true
+    @DEFAULT_CLASS = ViewNode
+    @CHECK_DOM     = false
     @TAG_KIND      = 1
     @TEXT_KIND     = 3
     @IGNORES       =
@@ -45,11 +45,11 @@ class ViewNode
         @keep   = cfg?.keep ? false;
         @__id__ = ++__id__
         nodeMap[@__id__] = @
-        if _.isNot(@inject) and cfg and cfg.inject
-            inject = @inject = cfg.inject
-            @[key] = value for key, value of inject
+        if cfg and cfg.inject
+            @inject = cfg.inject
+            @[key] = value for key, value of @inject
+        @init      cfg
         @updateCfg cfg
-        @init()
         @populate()
 
 
@@ -67,7 +67,6 @@ class ViewNode
         checkDom dom if ViewNode.CHECK_DOM
         dom.appendChild @view
         @onMount()
-        @onAddedToDom()
         @
 
 
@@ -82,7 +81,6 @@ class ViewNode
         else
             parent.appendChild @view
         @onMount()
-        @onAddedToDom()
         @
 
 
@@ -93,7 +91,6 @@ class ViewNode
         checkDom parent if ViewNode.CHECK_DOM
         parent.insertBefore @view, dom
         @onMount()
-        @onAddedToDom()
         @
 
 
@@ -106,14 +103,13 @@ class ViewNode
             checkDom dom
         parent.replaceChild @view, dom
         @onMount()
-        @onRemovedFromDom()
         @
 
-    # TODO: FIX ERROR -> node must be @
+
     remove: () ->
         if @parent
             throw new Error 'Please remove node from parent node instead of removing from real dom.'
-        parent = node.view.parentNode
+        parent = @view.parentNode
         checkDom parent if ViewNode.CHECK_DOM
         parent.removeChild @view
         @onUnmount()
@@ -127,7 +123,7 @@ class ViewNode
     #    000  000  0000  000     000   
     #    000  000   000  000     000
 
-    init: () ->
+    init: (cfg) ->
 
 
 
@@ -154,16 +150,6 @@ class ViewNode
     onUnmount: () -> @keep
 
 
-    onAddedToDom: () ->
-        if @children
-            child.onAddedToDom() for child in @children
-        @
-
-
-    onRemovedFromDom: () ->
-        if @children
-            child.onRemovedFromDom() for child in @children
-        @
 
 
     #    00000000    0000000   00000000   000   000  000       0000000   000000000  00000000
@@ -311,6 +297,9 @@ class ViewNode
     #    000        000   000   0000000   000        0000000 
 
     updateProps: (cfg) ->
+        if @updating
+            console.error 'Already updating: ', @
+        @updating = true
         @attrs    = @attrs    or {}
         @events   = @events   or {}
         @children = @children or []
@@ -369,6 +358,7 @@ class ViewNode
                         @updateBool value, name
                     else
                         @updateAttr value, name
+        @updating = false
         @
 
 
@@ -573,7 +563,7 @@ class ViewNode
     #     0000000  000   000  000  0000000  0000000    000   000  00000000  000   000
 
     updateChildren: (cfgs) ->
-        children = @children
+        children = @children.concat()
         cfgs     = [cfgs] if _.isSimple cfgs
         oldL     = children.length
         newL     = cfgs.length
@@ -596,7 +586,7 @@ class ViewNode
             else
                 @changeChild child, cfg
 
-        children.length = newL if newL != oldL and newL != children.length
+        @children.length = newL if newL != oldL and newL != @children.length
         @
 
 
@@ -717,6 +707,7 @@ class ViewNode
         child.parent = @
         child.depth  = @depth + 1
         @view.replaceChild child.view, view
+        child.onMount()
         child
 
 
@@ -871,15 +862,12 @@ handleResize = () ->
 
 
 
-window.addEventListener 'resize', handleResize
-
-
-
-
-ViewNode.create = create
-ViewNode.map    = map
-ViewNode.unmap  = unmap
-
+ViewNode.create       = create
+ViewNode.map          = map
+ViewNode.unmap        = unmap
+ViewNode.callResize   = callResize
+ViewNode.handleResize = handleResize
+ViewNode.default      = ViewNode
 
 
 
@@ -887,6 +875,6 @@ ViewNode.unmap  = unmap
 #    000        000 000   000   000  000   000  000   000     000   
 #    0000000     00000    00000000   000   000  0000000       000   
 #    000        000 000   000        000   000  000   000     000   
-#    00000000  000   000  000         0000000   000   000     000   
+#    00000000  000   000  000         0000000   000   000     000
 
 module.exports = ViewNode
