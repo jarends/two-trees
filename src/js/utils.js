@@ -23,7 +23,7 @@
   };
 
   isObject = function(value) {
-    return typeof value === 'object';
+    return value && typeof value === 'object' && !isArray(value);
   };
 
   isFunc = function(value) {

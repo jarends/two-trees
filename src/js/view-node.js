@@ -45,21 +45,22 @@
 
     function ViewNode(cfg) {
       this.update = bind(this.update, this);
-      var inject, key, ref, value;
+      var key, ref, ref1, value;
       this.parent = null;
       this.depth = 0;
       this.keep = (ref = cfg != null ? cfg.keep : void 0) != null ? ref : false;
       this.__id__ = ++__id__;
       nodeMap[this.__id__] = this;
-      if (_.isNot(this.inject) && cfg && cfg.inject) {
-        inject = this.inject = cfg.inject;
-        for (key in inject) {
-          value = inject[key];
+      if (cfg && cfg.inject) {
+        this.inject = cfg.inject;
+        ref1 = this.inject;
+        for (key in ref1) {
+          value = ref1[key];
           this[key] = value;
         }
       }
+      this.init(cfg);
       this.updateCfg(cfg);
-      this.init();
       this.populate();
     }
 
@@ -141,7 +142,7 @@
       return this;
     };
 
-    ViewNode.prototype.init = function() {};
+    ViewNode.prototype.init = function(cfg) {};
 
     ViewNode.prototype.updateCfg = function(cfg1) {
       this.cfg = cfg1;
@@ -850,6 +851,8 @@
   ViewNode.map = map;
 
   ViewNode.unmap = unmap;
+
+  ViewNode["default"] = ViewNode;
 
   module.exports = ViewNode;
 
