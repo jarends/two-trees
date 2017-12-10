@@ -133,7 +133,6 @@ class ViewNode
     #    000   000  000        000   000  000   000     000     000
     #     0000000   000        0000000    000   000     000     00000000
 
-    updateCfg: (@cfg) -> true
     update: () => update @
     render: () -> @cfg
 
@@ -273,6 +272,21 @@ class ViewNode
 
 
 
+    #    000   000  00000000   0000000     0000000   000000000  00000000         0000000  00000000   0000000 
+    #    000   000  000   000  000   000  000   000     000     000             000       000       000      
+    #    000   000  00000000   000   000  000000000     000     0000000         000       000000    000  0000
+    #    000   000  000        000   000  000   000     000     000             000       000       000   000
+    #     0000000   000        0000000    000   000     000     00000000         0000000  000        0000000 
+
+    updateCfg: (@cfg) ->
+        if @cfg and @cfg.inject
+            @inject = @cfg.inject
+            @[key] = value for key, value of @inject
+        true
+
+
+
+
     #    000000000  00000000  000   000  000000000
     #       000     000        000 000      000   
     #       000     0000000     00000       000   
@@ -299,13 +313,13 @@ class ViewNode
     updateProps: (cfg) ->
         if @updating
             console.error 'Already updating: ', @
-        @updating = true
-        @attrs    = @attrs    or {}
-        @events   = @events   or {}
-        @children = @children or []
-
+        @updating      = true
+        @attrs         = @attrs    or {}
+        @events        = @events   or {}
+        @children      = @children or []
+        updateChildren = cfg.updateChildren != false
         if cfg.text != undefined
-            @updateChildren [cfg.text]
+            @updateChildren [cfg.text] if updateChildren
 
             if ViewNode.DEBUG
                 if cfg.child != undefined
@@ -314,19 +328,20 @@ class ViewNode
                     console.warn 'children specified while text exists', cfg
 
         else if cfg.child != undefined
-            @updateChildren [cfg.child]
+            @updateChildren [cfg.child] if updateChildren
 
             if ViewNode.DEBUG
                 if cfg.children != undefined
                     console.warn 'children specified while child exists', cfg
 
         else if cfg.children != undefined
-            if _.isFunc cfg.children
-                @updateChildren cfg.children()
-            else
-                @updateChildren cfg.children
+            if updateChildren
+                if _.isFunc cfg.children
+                    @updateChildren cfg.children()
+                else
+                    @updateChildren cfg.children
 
-        else if @children.length
+        else if @children.length and updateChildren
             @updateChildren []
 
         if cfg.className != undefined or @attrs.className != undefined
@@ -528,7 +543,7 @@ class ViewNode
         listener = @events[name]
 
         if _.isString callback
-            callback = @[name]
+            callback = (args...) => @[name].apply @, args
 
         if listener != callback
             if listener
@@ -657,7 +672,7 @@ class ViewNode
 
         else if _.isString child.tag
 
-            if (child.tag == cfg.tag or child.constructor == cfg.tag)
+            if ((child.tag == cfg.tag and child.constructor == ViewNode) or child.constructor == cfg.tag)
                 if child.updateCfg cfg
                     child.updateProps child.render()
             else
@@ -863,6 +878,7 @@ handleResize = () ->
 
 
 ViewNode.create       = create
+ViewNode.dispose      = dispose
 ViewNode.map          = map
 ViewNode.unmap        = unmap
 ViewNode.callResize   = callResize

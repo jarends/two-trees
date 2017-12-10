@@ -35,7 +35,7 @@ export declare class ViewNode
 
     __id__:number;
 
-    constructor(cfg:Cfg|Simple);
+    constructor(cfg?:Cfg|Simple);
 
     appendTo(dom:HTMLElement):ViewNode;
     behind(dom:HTMLElement):ViewNode;

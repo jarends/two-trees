@@ -627,6 +627,13 @@ describe 'node instance', () ->
             expect(parent.children[0]).to.equal child
 
 
+        it 'should add a child node', () ->
+            child  = new Node tag:'div'
+            parent = new Node tag:'div'
+            parent.addChild child
+            expect(parent.children[0]).to.equal child
+
+
 
 
     #    00000000   00000000  00     00   0000000   000   000  00000000   0000000  000   000  000  000      0000000  
@@ -858,3 +865,86 @@ describe 'callbacks', () ->
             parent = new Node { tag: 'div', child: node }
             parent.replaceChild node, other
             expect(node.called['onUnmount']).to.equal true
+
+
+
+
+describe 'update', () ->
+
+    describe 'if child is same class as cfg.tag', () ->
+
+        it 'should inject from the new cfg', () ->
+
+            children = [
+                tag: MyValidNode
+                inject:
+                    test: 'hello world'
+            ]
+            parent = new Node
+                tag:      'div'
+                children: children
+
+            child = parent.children[0]
+            expect(child.test).to.equal 'hello world'
+            children[0] =
+                tag: MyValidNode
+                inject:
+                    test: 'hello world!!!'
+            parent.updateNow()
+            expect(parent.children[0]).to.equal child
+            expect(child.test).to.equal 'hello world!!!'
+
+describe 'cfg.updateChildren = false', () ->
+
+    it 'should not update children if parent is updated', () ->
+
+        parent = new Node
+            tag:      'div'
+            children: [
+                tag:      'div'
+                disabled: true
+            ]
+
+        expect(parent.children[0].attrs.disabled).to.equal true
+        parent.cfg.children[0].disabled = false
+        parent.updateNow()
+        expect(parent.children[0].attrs.disabled).to.equal false
+        parent.cfg.children[0].disabled = true
+        parent.cfg.updateChildren = false
+        parent.updateNow()
+        expect(parent.children[0].attrs.disabled).to.equal false
+
+
+    it 'should not update text if parent is updated', () ->
+
+        parent = new Node
+            tag:  'div'
+            text: 'test'
+
+        expectTextNode parent.children[0], Node, 'test'
+        parent.cfg.text = 'test!'
+        parent.updateNow()
+        expectTextNode parent.children[0], Node, 'test!'
+        parent.cfg.text = 'test!!'
+        parent.cfg.updateChildren = false
+        parent.updateNow()
+        expectTextNode parent.children[0], Node, 'test!'
+
+
+
+    it 'should not update child if parent is updated', () ->
+
+        parent = new Node
+            tag:      'div'
+            child:
+                tag:      'div'
+                disabled: true
+
+        expect(parent.children[0].attrs.disabled).to.equal true
+        parent.cfg.child.disabled = false
+        parent.updateNow()
+        expect(parent.children[0].attrs.disabled).to.equal false
+        parent.cfg.child.disabled = true
+        parent.cfg.updateChildren = false
+        parent.updateNow()
+        expect(parent.children[0].attrs.disabled).to.equal false
